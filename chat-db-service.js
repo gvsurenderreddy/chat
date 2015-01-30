@@ -15,18 +15,28 @@ var self = module.exports = {
 		messages : 'messages'
 	},
 
+	/** insère un utilisateur dans la collection des utilisateurs connectés. */
 	insertConnectedUser : function (username, callback) {
 		MongoClient.connect(config.mongodbUrl, function (err, db) {
-			db
-			.collection(self.collection.connectedUsers)
-			.insert({
-				username : username,
-				connectionDate : new Date()
-			}, function (err2, result) {
-				assert.equal(err2, null);
-				console.log("Inserted 1 document into the following collection: " + self.collection.connectedUsers);
-				callback(result);
-				db.close();
+			var collection = db.collection(self.collection.connectedUsers);
+			collection.count({
+				username : username
+			}, function (err2, count) {
+				console.log("count: " + count);
+				if (count > 0) {
+					db.close();
+					callback(null);
+				} else {
+					collection.insert({
+						username : username,
+						connectionDate : new Date()
+					}, function (err3, result) {
+						assert.equal(err3, null);
+						console.log("Inserted 1 document into the following collection: " + self.collection.connectedUsers);
+						callback(result);
+						db.close();
+					});
+				}
 			});
 		});
 	},
