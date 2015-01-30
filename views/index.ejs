@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Chat avec Node.js</title>
+		<style>
+			* { margin: 0; padding: 0; box-sizing: border-box; }
+			body { font: 13px Helvetica, Arial; }
+			form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+			form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+			form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+			#messages { list-style-type: none; margin: 0; padding: 0; }
+			#messages li { padding: 5px 10px; }
+			#messages li:nth-child(odd) { background: #eee; }
+		</style>
+	</head>
+	<body>
+		<ul id="messages"></ul>
+		<ul id="users"></ul>
+		<form action="">
+			<input name="message" id="message" autocomplete="off" autofocus />
+			<button>Envoyer</button>
+		</form>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+		var socket = io();
+		
+		socket.on('message', function(data) {
+			addMessage(data.username, data.message, data.date);
+		});
+		socket.on('disconnect', function(){
+			displayMessage("Vous avez été déconnecté du serveur de chat.");
+		});
+		socket.on('connect', function(){
+			displayMessage('Vous êtes à présent connecté au serveur de chat en tant que <%= username %>.');
+		});
+		socket.on('user-connected', function(data) {
+			displayMessage(data.username + ' a rejoint le Chat !');
+		});
+		socket.on('user-disconnected', function(data) {
+			displayMessage(data.username + ' a quitté la discussion.');
+		});
+		
+		// Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
+		$('form').submit(function () {
+			// récupération du message saisi par l'utilisateur
+			var message = $('#message').val();
+			// On transmet le message au serveur
+			socket.emit('message', message);
+			// Affiche le message aussi sur notre page
+			addMessage("<%= username %>", message, new Date());
+			// Vide la zone de Chat et remet le focus dessus
+			$('#message').val('').focus();
+			return false; // Permet de bloquer l'envoi "classique" du formulaire
+		});
+		
+		$('#message').keydown(function(event) {
+			// 13 = ENTER, 8 = backspace
+			if (event.which != 13) {
+				socket.emit('user-typing', {
+					"username": "<%= username %>",
+					"date": new Date()
+				});
+			}
+		});
+		
+		// Ajoute un message dans la page
+		var addMessage = function(username, message, date) {
+			$('#messages').append($('<li>').html($('<strong>').text(username)).append(" - " + message));
+		};
+		var displayMessage = function(message){
+			$('#messages').append($('<li>').text(message));
+		};
+		
+		displayMessage("Connecté en tant que <%=username%>");
+		
+		
+	</script>
+	</body>
+</html>
