@@ -12,8 +12,9 @@ var assert = require('assert'); // tests sur des variables dont une valeur est a
 var ejs = require('ejs'); // templating ejs
 var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
 var chatDbService = require('./chat-db-service') // charge le service de base de données du chat
+var URLRegExp = require('url-regexp');
 
-	app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
+app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
 app.set('view engine', 'ejs'); // moteur de template = ejs
 app.use(cookieParser(config.cookie.secret));
 app.use(session({
@@ -105,7 +106,7 @@ io.sockets.on('connection', function (socket) {
 			for (var i in msgSplitArray) {
 				var urlMatches = URLRegExp.match(msgSplitArray[i]);
 				if (urlMatches.length == 1)
-					msgSplitArray[i] = '<a href="' + urlMatches[0] + '">' + urlMatches[0] + '</a>';
+					msgSplitArray[i] = '<a href="' + urlMatches[0] + '" target="_blank">' + urlMatches[0] + '</a>';
 			}
 			message = msgSplitArray.join(" ");
 

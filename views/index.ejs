@@ -47,11 +47,16 @@
 			// récupération du message saisi par l'utilisateur
 			var message = $('#message').val();
 			
+			// si message vide, on sort:
+			if (message == '')
+				return false;
+			
 			// On transmet le message au serveur
 			socket.emit('message', message);
 			
 			// Vide la zone de Chat et remet le focus dessus
 			$('#message').val('').focus();
+			return false;
 		});
 		
 		$('#message').keydown(function(event) {
