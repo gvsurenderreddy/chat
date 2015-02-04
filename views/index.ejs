@@ -46,13 +46,12 @@
 		$('form').submit(function () {
 			// récupération du message saisi par l'utilisateur
 			var message = $('#message').val();
+			
 			// On transmet le message au serveur
 			socket.emit('message', message);
-			// Affiche le message aussi sur notre page
-			addMessage("<%= username %>", message, new Date());
+			
 			// Vide la zone de Chat et remet le focus dessus
 			$('#message').val('').focus();
-			return false; // Permet de bloquer l'envoi "classique" du formulaire
 		});
 		
 		$('#message').keydown(function(event) {

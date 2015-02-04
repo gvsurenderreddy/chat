@@ -98,6 +98,17 @@ io.sockets.on('connection', function (socket) {
 	socket.on('message', function (message) {
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log('Message recu : ' + message + ', username: ' + session.username);
+
+			// on vérifie le message : s'il contient une url, on l'affiche sous forme de lien cliquable
+			var msgSplitArray = message.split(' ');
+
+			for (var i in msgSplitArray) {
+				var urlMatches = URLRegExp.match(msgSplitArray[i]);
+				if (urlMatches.length == 1)
+					msgSplitArray[i] = '<a href="' + urlMatches[0] + '">' + urlMatches[0] + '</a>';
+			}
+			message = msgSplitArray.join(" ");
+
 			var messageObject = {
 				username : session.username,
 				message : message,
@@ -106,7 +117,7 @@ io.sockets.on('connection', function (socket) {
 			chatDbService.insertMessage(messageObject, function () {
 				console.log("chatDbService.insertMessage(" + session.username + ")");
 			});
-			socket.broadcast.emit('message', messageObject);
+			io.sockets.emit('message', messageObject);
 		});
 	});
 
