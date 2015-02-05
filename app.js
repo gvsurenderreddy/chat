@@ -7,11 +7,10 @@ var MongoStore = require('connect-mongo')(session);
 var mongoStore = new MongoStore({
 		url : config.mongodbUrl
 	});
-
 var assert = require('assert'); // tests sur des variables dont une valeur est attendue.
 var ejs = require('ejs'); // templating ejs
 var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
-var chatDbService = require('./chat-db-service') // charge le service de base de données du chat
+var chatDbService = require('./chat-db-service'); // charge le service de base de données du chat
 var URLRegExp = require('url-regexp');
 
 app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
@@ -118,11 +117,21 @@ io.sockets.on('connection', function (socket) {
 			chatDbService.insertMessage(messageObject, function () {
 				console.log("chatDbService.insertMessage(" + session.username + ")");
 			});
+			
 			io.sockets.emit('message', messageObject);
+			
+			console.log('broadcast stopped-typing for user ' + session.username);
+			socket.broadcast.emit('stopped-typing', session.username);
 		});
 	});
 
-	socket.on('typing', function (data) {
-		console.log(data.username + " typing at " + data.date);
+	socket.on('user-typing', function (data) {
+		console.log("[" + data.date + "] " + data.username + " typing...");
+		if (data) socket.broadcast.emit('user-typing', data);
+	});
+
+	socket.on('stopped-typing', function (username) {
+		console.log(username + " stopped typing.");
+		if (username) socket.broadcast.emit('stopped-typing', username);
 	});
 });
