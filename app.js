@@ -54,42 +54,48 @@ io.use(function ioSession(socket, next) {
 	next();
 });
 
+// on récupère le gestionnaire d'utilisateurs connectés
+var connectedUsersHelper = require('./connected-users-helper');
+
 io.sockets.on('connection', function (socket) {
 
 	// L'utilisateur se connecte au chat, on l'annonce :
 	mongoStore.get(socket.sessionID, function (err, session) {
-		console.log('broadcasting message : user-connected = ' + session.username);
-		chatDbService.insertConnectedUser(session.username, function () {
-			console.log("chatDbService.insertConnectedUser(" + session.username + ")");
-			// récupération de la liste des utilisateurs connectés.
-			chatDbService.findConnectedUsers(function (users) {
-				socket.broadcast.emit('user-connected', {
-					username : session.username,
-					date : new Date()
-				});
-				io.sockets.emit('connected-users', {
-					usersList : users
-				});
-			});
+
+		// ajout de l'utilisateur à la liste des utilisateurs connectés
+		connectedUsersHelper.add(socket.sessionID, session.username);
+
+		socket.broadcast.emit('user-connected', {
+			username : session.username,
+			date : new Date()
 		});
+
+		io.sockets.emit('refresh-connected-users', {
+			"connectedUsers" : connectedUsersHelper.getLite()
+		});
+
+		console.log("connectedUsersHelper.getLite() = " + JSON.stringify(connectedUsersHelper.getLite()));
 	});
 
 	// When user leaves
 	socket.on('disconnect', function () {
+
+		// suppression de l'utilisateur dans le tableau
+		connectedUsersHelper.remove(socket.sessionID);
+
+		// recup de la session
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log(session.username + ' vient de se deconnecter.\n');
-			chatDbService.deleteConnectedUser(session.username, function () {
-				console.log("chatDbService.deleteConnectedUser(" + session.username + ")");
-				// récupération de la liste des utilisateurs connectés.
-				chatDbService.findConnectedUsers(function (users) {
-					socket.broadcast.emit('user-disconnected', {
-						username : session.username,
-						date : Date.now()
-					});
-					io.sockets.emit('connected-users', {
-						usersList : users
-					});
-				});
+
+			// on broadcaste le message de déconnexion d'un utilisateur :
+			socket.broadcast.emit('user-disconnected', {
+				username : session.username,
+				date : Date.now()
+			});
+
+			// on broadcaste le message de refresh de la liste des utilisateurs :
+			socket.broadcast.emit('refresh-connected-users', {
+				"connectedUsers" : connectedUsersHelper.getLite()
 			});
 		});
 	});
@@ -117,9 +123,9 @@ io.sockets.on('connection', function (socket) {
 			chatDbService.insertMessage(messageObject, function () {
 				console.log("chatDbService.insertMessage(" + session.username + ")");
 			});
-			
+
 			io.sockets.emit('message', messageObject);
-			
+
 			console.log('broadcast stopped-typing for user ' + session.username);
 			socket.broadcast.emit('stopped-typing', session.username);
 		});
@@ -127,11 +133,13 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('user-typing', function (data) {
 		console.log("[" + data.date + "] " + data.username + " typing...");
-		if (data) socket.broadcast.emit('user-typing', data);
+		if (data)
+			socket.broadcast.emit('user-typing', data);
 	});
 
 	socket.on('stopped-typing', function (username) {
 		console.log(username + " stopped typing.");
-		if (username) socket.broadcast.emit('stopped-typing', username);
+		if (username)
+			socket.broadcast.emit('stopped-typing', username);
 	});
 });

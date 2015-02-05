@@ -20,12 +20,7 @@
 			<div class="col-lg-12">
 				<div class="col-lg-4">
 					<h3>Utilisateurs connectés</h3>
-					<ul id="users">
-						<li>user 1</li>
-						<li>user 2</li>
-						<li>user 3</li>
-						<li>user 4</li>
-					</ul>
+					<ul id="users"></ul>
 				</div>
 				<div class="col-lg-8">
 					<h2>Messages reçus</h2>
@@ -48,6 +43,13 @@
 		
 		var isTyping = false;
 		
+		socket.on('refresh-connected-users', function(data) {
+			console.log('refresh-connected-users');
+			$('#users').empty();
+			for (var i in data.connectedUsers) {
+				$('#users').append($('li').text(data.connectedUsers[i].username));
+			}
+		});
 		socket.on('stopped-typing', function(username) {
 			$('li#' + username).remove();
 		});

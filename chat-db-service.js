@@ -32,7 +32,7 @@ var self = module.exports = {
 						connectionDate : new Date()
 					}, function (err3, result) {
 						assert.equal(err3, null);
-						console.log("Inserted 1 document into the following collection: " + self.collection.connectedUsers);
+						//console.log("Inserted 1 document into the following collection: " + self.collection.connectedUsers);
 						callback(result);
 						db.close();
 					});
@@ -49,7 +49,7 @@ var self = module.exports = {
 			}, function (err2, result) {
 				db.close();
 				assert.equal(err2, null);
-				console.log("Removed the user with username = [" + username + "] from the collection [" + self.collection.connectedUsers + "]");
+				//console.log("Removed the user with username = [" + username + "] from the collection [" + self.collection.connectedUsers + "]");
 				callback(result);
 			});
 		});
@@ -61,7 +61,7 @@ var self = module.exports = {
 			.insert(messageObject, function (err2, result) {
 				db.close();
 				assert.equal(err2, null);
-				console.log("Inserted 1 message into the messages collection !");
+				//console.log("Inserted 1 message into the messages collection !");
 				callback(result);
 			});
 		});
@@ -73,8 +73,8 @@ var self = module.exports = {
 			.find({}).toArray(function (err, users) {
 				db.close();
 				assert.equal(err, null);
-				console.log("Found the following records:");
-				console.dir(users);
+				//console.log("Found the following records:");
+				//console.dir(users);
 				callback(users);
 			});
 		});
