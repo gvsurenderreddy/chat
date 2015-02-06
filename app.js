@@ -12,6 +12,7 @@ var ejs = require('ejs'); // templating ejs
 var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
 var chatDbService = require('./chat-db-service'); // charge le service de base de données du chat
 var URLRegExp = require('url-regexp');
+var moment = require('moment'); // utilitarie de formatage des dates
 
 app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
 app.set('view engine', 'ejs'); // moteur de template = ejs
@@ -67,7 +68,7 @@ io.sockets.on('connection', function (socket) {
 
 		socket.broadcast.emit('user-connected', {
 			username : session.username,
-			date : new Date()
+			date : moment().format()
 		});
 
 		io.sockets.emit('refresh-connected-users', {
@@ -102,9 +103,14 @@ io.sockets.on('connection', function (socket) {
 
 	// New message from client = "write" event
 	socket.on('message', function (message) {
+		
+		console.log("message:" + message);
+		
+		if (message == null) return;
+		
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log('Message recu : ' + message + ', username: ' + session.username);
-
+			
 			// on vérifie le message : s'il contient une url, on l'affiche sous forme de lien cliquable
 			var msgSplitArray = message.split(' ');
 

@@ -124,6 +124,15 @@ module.exports = function (app) {
 			});
 		}
 	});
+	app.get('/moment/:momentFile', function(req, res, next){
+		res.sendFile(__dirname + '/node_modules/moment/' + req.params.momentFile);
+	});
+	app.get('/bootstrap/:bootstrapFile', function(req, res, next){
+		res.sendFile(__dirname + '/node_modules/bootstrap/dist/css/' + req.params.bootstrapFile);
+	});
+	app.get('/css/:cssFile', function(req, res, next){
+		res.sendFile(__dirname + '/css/' + req.params.cssFile);
+	});
 	app.use(function (req, res, next) {
 		// Page non trouvée ? redirection vers /
 		res.redirect('/');
