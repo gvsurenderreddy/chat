@@ -5,30 +5,10 @@
 		<script src="/moment/moment.js"></script>
 		<link href="/bootstrap/bootstrap.min.css" rel="stylesheet">
 		<link href="/css/chat.css" rel="stylesheet">
-		<title>Chat avec Node.js</title>
+		<title>Node.js chat</title>
 	</head>
 	<body>
-		<!--
-		<div class="col-lg-12">
-			<div class="col-lg-4">
-				<ul id="users"></ul>
-			</div>
-			<div class="col-lg-8">
-				<ul id="messages"></ul>
-			</div>
-		</div>
-		
-		<form id="send-message" action="" class="form-inline">
-			<div class="input-group col-lg-12">
-				<input class="form-control" name="message" id="message" autocomplete="off" autofocus />
-				<span class="input-group-btn" style="width: 50px;">
-					<button class="btn btn-default" type="submit">Envoyer</button>
-				</span>
-			</div>
-		</form>
-		-->
-		
-		<!-- sdfsqfsd -->
+		<!-- header -->
 		<div class="chat-panel panel panel-default">
 			<div class="panel-heading">
 				<i class="fa fa-comments fa-fw"></i>
@@ -69,68 +49,7 @@
 			</div>
 			<!-- /.panel-heading -->
 			<div class="panel-body">
-				<ul class="chat" id="messages">
-					<li class="left clearfix">
-						<span class="chat-img pull-left">
-						<img src="http://placehold.it/50/55C1E7/fff" alt="User Avatar" class="img-circle" />
-						</span>
-						<div class="chat-body clearfix">
-							<div class="header">
-								<strong class="primary-font">Jack Sparrow</strong>
-								<small class="pull-right text-muted">
-									<i class="fa fa-clock-o fa-fw"></i> 12 mins ago
-								</small>
-							</div>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.</p>
-						</div>
-					</li>
-					<li class="right clearfix">
-		<span class="chat-img pull-right">
-		<img src="http://placehold.it/50/FA6F57/fff" alt="User Avatar" class="img-circle" />
-		</span>
-
-						<div class="chat-body clearfix">
-							<div class="header">
-		<small class=" text-muted">
-		<i class="fa fa-clock-o fa-fw"></i> 13 mins ago</small>
-
-		<strong class="pull-right primary-font">Bhaumik Patel</strong>
-
-							</div>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.</p>
-						</div>
-					</li>
-					<li class="left clearfix">
-		<span class="chat-img pull-left">
-		<img src="http://placehold.it/50/55C1E7/fff" alt="User Avatar" class="img-circle" />
-		</span>
-
-						<div class="chat-body clearfix">
-							<div class="header">
-		<strong class="primary-font">Jack Sparrow</strong>
-
-		<small class="pull-right text-muted">
-		<i class="fa fa-clock-o fa-fw"></i> 14 mins ago</small>
-
-							</div>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.</p>
-						</div>
-					</li>
-					<li class="right clearfix">
-						<span class="chat-img pull-right">
-							<img src="http://placehold.it/50/FA6F57/fff" alt="User Avatar" class="img-circle" />
-						</span>
-						<div class="chat-body clearfix">
-							<div class="header">
-								<small class=" text-muted">
-								<i class="fa fa-clock-o fa-fw"></i> 15 mins ago</small>
-								<strong class="pull-right primary-font">Bhaumik Patel</strong>
-
-							</div>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.</p>
-						</div>
-					</li>
-				</ul>
+				<ul class="chat" id="messages"></ul>
 			</div>
 			<!-- /.panel-body -->
 			<div class="panel-footer">
@@ -146,143 +65,11 @@
 			<!-- /.panel-footer -->
 		</div>
 		<!-- /.panel .chat-panel -->
-		
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script>
-		
-		String.format = function() {
-			// The string containing the format items (e.g. "{0}")
-			// will and always has to be the first argument.
-			var theString = arguments[0];
-			
-			// start with the second argument (i = 1)
-			for (var i = 1; i < arguments.length; i++) {
-				// "gm" = RegEx options for Global search (more than one instance)
-				// and for Multiline search
-				var regEx = new RegExp("\\{" + (i - 1) + "\\}", "gm");
-				theString = theString.replace(regEx, arguments[i]);
-			}
-			
-			return theString;
-		}
-		
-		var socket = io();
-		
-		var isTyping = false;
-		
-		/*socket.on('refresh-connected-users', function(data) {
-			console.log('refresh-connected-users');
-			$('#users').empty();
-			for (var i in data.connectedUsers) {
-				$('#users').append($('li').text(data.connectedUsers[i].username));
-			}
-		});*/
-		socket.on('stopped-typing', function(username) {
-			$('li#' + username).remove();
-		});
-		socket.on('user-typing', function(data) {
-			// tester si l'élément de liste n'existe pas déjà, auquel cas, on ne fait rien.
-			var match = $('li#' + data.username).length;
-			if (match == 0) {
-				$('#messages').append("<li id='" + data.username + "'>" + data.username + " est en train d'écrire... </li>");
-			}
-		});
-		socket.on('message', function(data) {
-			var momentDate = moment(data.date);
-			console.log('il y a ' + momentDate.fromNow());
-			addMessage(data.username, data.message, momentDate.format());
-		});
-		socket.on('disconnect', function() {
-			displayMessage("Vous avez été déconnecté du serveur de chat.");
-		});
-		socket.on('connect', function() {
-			displayMessage('Vous êtes à présent connecté au serveur de chat en tant que <%= username %>.');
-		});
-		socket.on('user-connected', function(data) {
-			displayMessage(data.username + ' a rejoint le Chat !');
-		});
-		socket.on('user-disconnected', function(data) {
-			displayMessage(data.username + ' a quitté la discussion.');
-		});
-		
-		// Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
-		$('form').submit(function () {
-			// récupération du message saisi par l'utilisateur
-			var message = $('#message').val();
-			
-			// si message vide, on sort:
-			if (message == '')
-				return false;
-			
-			// On transmet le message au serveur
-			socket.emit('message', message);
-			
-			// Vide la zone de Chat et remet le focus dessus
-			$('#message').val('').focus();
-			
-			// on remet à zéro le flag isTyping
-			isTyping = false;
-			
-			return false;
-		});
-		
-		$('#message').keydown(function(event) {
-			// 13 = ENTER, 8 = backspace
-			if (event.which == 8) {
-				var message = $('#message').val();
-				//console.log('message: ' + message);
-				if (message == '' && isTyping == true) {
-					socket.emit('stopped-typing', "<%= username %>");
-					isTyping = false;
-					return;
-				}
-			}
-			if (event.which != 13) {
-				isTyping = true;
-				socket.emit('user-typing', {
-					"username": "<%= username %>",
-					"date": new Date()
-				});
-			}
-		});
-		
-		// Ajoute un message dans la page
-		var addMessage = function(username, message, date) {
-			//$('#messages').append($('<li>').html($('<strong>').text(username)).append(" - " + message));
-			
-			/** 
-			0: left/right : classe css
-			1: username
-			2: date
-			3: message
-			*/
-			var html = 
-				'<li class="{0} clearfix">' +
-					'<span class="chat-img pull-left">' +
-						'<img src="http://placehold.it/50/55C1E7/fff" alt="User Avatar" class="img-circle" />' +
-					'</span>' +
-					'<div class="chat-body clearfix">' +
-						'<div class="header">' +
-							'<strong class="primary-font">{1}</strong>' +
-							'<small class="pull-right text-muted">' +
-								'<i class="fa fa-clock-o fa-fw"></i> {2}' +
-							'</small>' +
-						'</div>' +
-						'<p>{3}</p>' +
-					'</div>' +
-				'</li>';
-			html = String.format(html, 'left', username, date, message);
-			$('#messages').append(html);
-		};
-		var displayMessage = function(message){
-			$('#messages').append($('<li>').text(message));
-		};
-		
-		displayMessage("Connecté en tant que <%=username%>");
-		
-		
-	</script>
+		<script src="/js/chat.js"></script>
+		<script src="/js/string.format.js"></script>
+		<script>var USERNAME = "<%= username %>";</script>
 </body>
 </html>
 </html>

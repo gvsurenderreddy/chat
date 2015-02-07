@@ -112,7 +112,7 @@ io.sockets.on('connection', function (socket) {
 			console.log('Message recu : ' + message + ', username: ' + session.username);
 			
 			// on vérifie le message : s'il contient une url, on l'affiche sous forme de lien cliquable
-			var msgSplitArray = message.split(' ');
+			var msgSplitArray = ent.encode(message).split(' ');
 
 			for (var i in msgSplitArray) {
 				var urlMatches = URLRegExp.match(msgSplitArray[i]);

@@ -30,7 +30,7 @@ module.exports = function (app) {
 					});
 				} else {
 					console.log('Token valide, utilisateur: [' + username + ']');
-					
+
 					// l'utilisateur est authentifié, on le laisse passer.
 					next();
 				}
@@ -38,7 +38,8 @@ module.exports = function (app) {
 		}
 	}
 
-	/** GESTION DES ROUTES **/
+	// GESTION DES "PAGES" DE L'APPLICATION
+	
 	app.get('/', requireLogin, function (req, res, next) {
 		res.render(config.templatesUrls.index, {
 			'username' : req.session.username
@@ -124,17 +125,23 @@ module.exports = function (app) {
 			});
 		}
 	});
-	app.get('/moment/:momentFile', function(req, res, next){
+	
+	// RESOURCES FILES
+	
+	app.get('/moment/:momentFile', function (req, res, next) {
 		res.sendFile(__dirname + '/node_modules/moment/' + req.params.momentFile);
 	});
-	app.get('/bootstrap/:bootstrapFile', function(req, res, next){
+	app.get('/bootstrap/:bootstrapFile', function (req, res, next) {
 		res.sendFile(__dirname + '/node_modules/bootstrap/dist/css/' + req.params.bootstrapFile);
 	});
-	app.get('/css/:cssFile', function(req, res, next){
+	app.get('/css/:cssFile', function (req, res, next) {
 		res.sendFile(__dirname + '/css/' + req.params.cssFile);
+	});
+	app.get('/js/:jsFile', function (req, res, next) {
+		res.sendFile(__dirname + '/js/' + req.params.jsFile);
 	});
 	app.use(function (req, res, next) {
 		// Page non trouvée ? redirection vers /
 		res.redirect('/');
 	});
-}
+};
