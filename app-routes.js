@@ -1,6 +1,6 @@
-var AuthManager = require('./auth-manager'); // charge le gestionnaire d'authentification dÈfini dans ./auth-manager.js
+Ôªøvar AuthManager = require('./auth-manager'); // charge le gestionnaire d'authentification d√©fini dans ./auth-manager.js
 var config = require('./config');
-var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramËtres
+var bodyParser = require('body-parser'); // Charge le middleware de gestion des param√®tres
 var urlencodedParser = bodyParser.urlencoded({
 		extended : false
 	});
@@ -9,8 +9,8 @@ module.exports = function (app) {
 
 	/** Middleware for limited access **/
 	function requireLogin(req, res, next) {
-		// page d'accueil: vÈrification qu'il y a un token
-		// enregistrÈ en session:
+		// page d'accueil: v√©rification qu'il y a un token
+		// enregistr√© en session:
 		if (typeof(req.session.authToken) == 'undefined' || req.session.authToken == null) {
 			console.log('Aucun token en session.');
 
@@ -20,18 +20,18 @@ module.exports = function (app) {
 			});
 		} else {
 			// Il y a un token en session;
-			// on va le vÈrifier.
+			// on va le v√©rifier.
 			AuthManager.checkToken(req.session.authToken, function (valid, username) {
 				if (!valid) {
 					console.log('Token invalide');
 					console.log('Affichage de la page de connexion');
 					res.render(config.templatesUrls.logIn, {
-						"message" : "Session expirÈe, veuillez vous reconnecter."
+						"message" : "Session expir√©e, veuillez vous reconnecter."
 					});
 				} else {
 					console.log('Token valide, utilisateur: [' + username + ']');
 
-					// l'utilisateur est authentifiÈ, on le laisse passer.
+					// l'utilisateur est authentifi√©, on le laisse passer.
 					next();
 				}
 			});
@@ -39,7 +39,7 @@ module.exports = function (app) {
 	}
 
 	// GESTION DES "PAGES" DE L'APPLICATION
-	
+
 	app.get('/', requireLogin, function (req, res, next) {
 		res.render(config.templatesUrls.index, {
 			'username' : req.session.username
@@ -47,10 +47,10 @@ module.exports = function (app) {
 	});
 	app.post('/login', urlencodedParser, function (req, res) {
 
-		// on teste que le login & le password ont bien ÈtÈ renseignÈs.
+		// on teste que le login & le password ont bien √©t√© renseign√©s.
 		if (req.body.login != '') {
 
-			// on lance la vÈrification des identifiants.
+			// on lance la v√©rification des identifiants.
 			AuthManager.checkCredentials(req.body.login, req.body.password, function (result) {
 				if (!result.userExists || !result.passwordsMatch) {
 					// password incorrect
@@ -61,7 +61,7 @@ module.exports = function (app) {
 					});
 				} else {
 					// ok !
-					console.log('L\'utilisateur a bien ÈtÈ authentifiÈ !');
+					console.log('L\'utilisateur a bien √©t√© authentifi√© !');
 
 					// on stocke le token en session:
 					req.session.authToken = result.token;
@@ -87,7 +87,7 @@ module.exports = function (app) {
 					"error" : error
 				}
 				 : {
-					"message" : "DÈconnexion rÈalisÈe avec succËs."
+					"message" : "D√©connexion r√©alis√©e avec succ√®s."
 				};
 				res.render(config.templatesUrls.logOut, obj);
 			});
@@ -101,13 +101,23 @@ module.exports = function (app) {
 	app.post('/signin', urlencodedParser, function (req, res) {
 		if (req.body.login != '' && req.body.password != '') {
 
-			// donnÈes supplÈmentaires:
+			// verif du nom d'utilisateur (caract√®res alphanum, - et _ autoris√©s)
+			var regex = /^(\-|\w|\_|\d)+$/g;
+			var test = regex.test(req.body.login);
+			console.log("test = " + test);
+
+			if (test === false) {
+				res.render(config.templatesUrls.signIn, { error : "Caract√®res invalides d√©tect√©s. Impossible de cr√©er l'utilisateur avec ce login. Choisissez un nom contenant uniquement des caract√®res alphanum√©riques, un tiret ou un underscore." });
+				return;
+			}
+
+			// donn√©es suppl√©mentaires:
 			var extras = {
 				date : new Date(),
 				name : 'Finnius F. Bar'
 			};
 
-			// crÈation de l'utilisateur...
+			// cr√©ation de l'utilisateur...
 			AuthManager.createUser(req.body.login, req.body.password, extras, function (result) {
 				if (result.error == true) {
 					res.render(config.templatesUrls.signIn, {
@@ -125,9 +135,9 @@ module.exports = function (app) {
 			});
 		}
 	});
-	
+
 	// RESOURCES FILES
-	
+
 	app.get('/moment/:momentFile', function (req, res, next) {
 		res.sendFile(__dirname + '/node_modules/moment/' + req.params.momentFile);
 	});
@@ -140,8 +150,18 @@ module.exports = function (app) {
 	app.get('/js/:jsFile', function (req, res, next) {
 		res.sendFile(__dirname + '/js/' + req.params.jsFile);
 	});
+	app.get('/font-awesome/:dir/:file', function (req, res, next) {
+		// todo: n'autoriser que les caract√®res alphanum et le tiret... pour les vars en entr√©e (dir et file)
+		// var dirRegEx = /^([\w|\-]+)$;
+		// var one = new RegExp(dirRegEx, 'i');
+		// var matches = req.params.file.match(many);
+		// return matches.filter(function (value, index) {
+			// return matches.indexOf(value) === index;
+		// });
+		res.sendFile(__dirname + '/node_modules/font-awesome/' + req.params.dir + '/' + req.params.file);
+	});
 	app.use(function (req, res, next) {
-		// Page non trouvÈe ? redirection vers /
+		// Page non trouv√©e ? redirection vers /
 		res.redirect('/');
 	});
 };

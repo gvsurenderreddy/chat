@@ -18,7 +18,8 @@
 		"socket.io" : "~1.0.0",
 		"url-regexp" : "~1.0.2",
 		"user-management" : "~1.0.0",
-		"moment" : "latest"
+		"moment" : "latest",
+		"font-awesome": "latest"
 	},
 	"devDependencies" : {
 		"grunt" : "~0.4.5",

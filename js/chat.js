@@ -8,10 +8,10 @@ var isTyping = false;
 
 socket.on('refresh-connected-users', function(data) {
 	console.log('refresh-connected-users data = ' + data);
-	// $('#users').empty();
-	// for (var i in data.connectedUsers) {
-		// $('#users').append($('li').text(data.connectedUsers[i].username));
-	// }
+	$('#users').empty();
+	for (var i in data) {
+		$('#users').append($('li').text(data[i].username));
+	}
 });
 socket.on('stopped-typing', function(username) {
 	$('li#' + username).remove();
@@ -46,20 +46,20 @@ socket.on('user-disconnected', function(data) {
 $('form').submit(function () {
 	// récupération du message saisi par l'utilisateur
 	var message = $('#message').val();
-	
+
 	// si message vide, on sort:
 	if (message == '')
 		return false;
-	
+
 	// On transmet le message au serveur
 	socket.emit('message', message);
-	
+
 	// Vide la zone de Chat et remet le focus dessus
 	$('#message').val('').focus();
-	
+
 	// on remet à zéro le flag isTyping
 	isTyping = false;
-	
+
 	return false;
 });
 
@@ -86,7 +86,7 @@ $('#message').keydown(function(event) {
 // Ajoute un message dans la page
 var addMessage = function(username, message, date) {
 	// 0: username, 1: user's avatar, 2: date, 3: message
-	var html_leftAlign = 
+	var html_leftAlign =
 		'<li class="left clearfix">' +
 			'<span class="chat-img pull-left">' +
 				'<img src="{1}" alt="User Avatar" class="img-circle" />' +
@@ -101,8 +101,8 @@ var addMessage = function(username, message, date) {
 				'<p>{3}</p>' +
 			'</div>' +
 		'</li>';
-		
-	var html_rightAlign = 
+
+	var html_rightAlign =
 		'<li class="right clearfix">' +
 			'<span class="chat-img pull-right">' +
 				'<img src="{1}" alt="User Avatar" class="img-circle" />' +
@@ -117,7 +117,7 @@ var addMessage = function(username, message, date) {
 				'<p>{3}</p>' +
 			'</div>' +
 		'</li>';
-		
+
 	var html = (username == USERNAME) ? html_leftAlign : html_rightAlign;
 	var avatar = (username == USERNAME) ? "http://placehold.it/50/55C1E7/fff" : "http://placehold.it/50/FA6F57/fff";
 	html = String.format(html, username, avatar, date, message);
@@ -129,6 +129,8 @@ var displayMessage = function(message) {
 	scrollToBottom();
 };
 var scrollToBottom = function () {
-	$('div.panel-body').animate({ scrollTop: $('div.panel-body')[0].scrollHeight }, 100);
-}
+	console.log('body scroll height = ' + $('body')[0].scrollHeight);
+	$('body').animate({ scrollTop: $('body')[0].scrollHeight }, 1000);
+	console.log('scrolltobottom OK !');
 
+}

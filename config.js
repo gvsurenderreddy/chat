@@ -1,4 +1,4 @@
-/** Paramètres de l'appli */
+ï»¿/** ParamÃ¨tres de l'appli */
 module.exports = {
 	port : 8080,
 	cookie : {
@@ -6,10 +6,10 @@ module.exports = {
 		name : 'sid'
 	},
 	userMgmtOptions : {
-		hostname : 'localhost', // valeur par défaut
-		port : 27017, // valeur par défaut
-		database : 'user_management', // valeur par défaut
-		tokenExpiration : 24 // valeur par défaut = 168h soit 1 semaine
+		hostname : 'localhost', // valeur par dÃ©faut
+		port : 27017, // valeur par dÃ©faut
+		database : 'user_management', // valeur par dÃ©faut
+		tokenExpiration : 24 // valeur par dÃ©faut = 168h soit 1 semaine
 	},
 	templatesUrls : {
 		index : 'index.ejs',

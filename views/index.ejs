@@ -5,9 +5,18 @@
 		<script src="/moment/moment.js"></script>
 		<link href="/bootstrap/bootstrap.min.css" rel="stylesheet">
 		<link href="/css/chat.css" rel="stylesheet">
+		<!-- Custom Fonts -->
+		<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 		<title>Node.js chat</title>
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
 	</head>
 	<body>
+
 		<!-- header -->
 		<div class="chat-panel panel panel-default">
 			<div class="panel-heading">
@@ -18,11 +27,6 @@
 						<i class="fa fa-chevron-down"></i>
 					</button>
 					<ul class="dropdown-menu slidedown">
-						<li>
-							<a href="#">
-								<i class="fa fa-refresh fa-fw"></i> Refresh
-							</a>
-						</li>
 						<li>
 							<a href="#">
 								<i class="fa fa-check-circle fa-fw"></i> Available
@@ -63,13 +67,18 @@
 				</div>
 			</div>
 			<!-- /.panel-footer -->
+			<!--<div class="panel-right">
+				<ul class="chat" id="users"></ul>
+			</div>-->
+			<!-- /.panel-right -->
 		</div>
 		<!-- /.panel .chat-panel -->
+
+		<script>var USERNAME = "<%= username %>";</script>
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/js/chat.js"></script>
 		<script src="/js/string.format.js"></script>
-		<script>var USERNAME = "<%= username %>";</script>
 </body>
 </html>
 </html>

@@ -1,8 +1,8 @@
-var self = module.exports = {
+ï»¿var self = module.exports = {
 	_users : [],
 	_usersLight : [],
 
-	/** ajout d'un utilisateur connecté */
+	/** ajout d'un utilisateur connectÃ© */
 	add : function (sessionId, username) {
 		if (self.indexOf(sessionId) == -1) {
 			self._users.push({
@@ -16,7 +16,7 @@ var self = module.exports = {
 		}
 	},
 
-	/** on recherche l'élément en fonction du sessionId */
+	/** on recherche l'Ã©lÃ©ment en fonction du sessionId */
 	indexOf : function (sessionId) {
 		var index = -1;
 		for (var i in self._users) {
@@ -29,7 +29,7 @@ var self = module.exports = {
 		return index;
 	},
 
-	/** suppression d'un utilisateur connecté */
+	/** suppression d'un utilisateur connectÃ© */
 	remove : function (sessionId) {
 		var index = self.indexOf(sessionId);
 		if (index != -1) {
@@ -38,12 +38,12 @@ var self = module.exports = {
 		}
 	},
 
-	/** récupération des utilisateurs connectés */
+	/** rÃ©cupÃ©ration des utilisateurs connectÃ©s */
 	get : function () {
 		return self._users;
 	},
 
-	/** récupération des utilisateurs connectés sans le sessionId */
+	/** rÃ©cupÃ©ration des utilisateurs connectÃ©s sans le sessionId */
 	getLite : function () {
 		return self._usersLight;
 	}

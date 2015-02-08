@@ -103,14 +103,14 @@ io.sockets.on('connection', function (socket) {
 
 	// New message from client = "write" event
 	socket.on('message', function (message) {
-		
+
 		console.log("message:" + message);
-		
+
 		if (message == null) return;
-		
+
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log('Message recu : ' + message + ', username: ' + session.username);
-			
+
 			// on vérifie le message : s'il contient une url, on l'affiche sous forme de lien cliquable
 			var msgSplitArray = ent.encode(message).split(' ');
 
