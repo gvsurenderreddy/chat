@@ -66,15 +66,18 @@ io.sockets.on('connection', function (socket) {
 		// ajout de l'utilisateur à la liste des utilisateurs connectés
 		connectedUsersHelper.add(socket.sessionID, session.username);
 
+		// on broadcaste l'énènement de connexion d'un nouvel utilisateur.
 		socket.broadcast.emit('user-connected', {
 			username : session.username,
 			date : moment().format()
 		});
 
+		// on force le rafraîchissement de la liste des utilisateurs.
 		io.sockets.emit('refresh-connected-users', {
 			"connectedUsers" : connectedUsersHelper.getLite()
 		});
 
+		// debug
 		console.log("connectedUsersHelper.getLite() = " + JSON.stringify(connectedUsersHelper.getLite()));
 	});
 
@@ -106,7 +109,8 @@ io.sockets.on('connection', function (socket) {
 
 		console.log("message:" + message);
 
-		if (message == null) return;
+		if (message == null)
+			return;
 
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log('Message recu : ' + message + ', username: ' + session.username);
@@ -148,4 +152,16 @@ io.sockets.on('connection', function (socket) {
 		if (username)
 			socket.broadcast.emit('stopped-typing', username);
 	});
+
+	socket.on('user-image', function (base64Image) {
+		console.log('message "user-image" received !');
+		
+		// récupérer le nom d'utilisateur via la session de la websocket:
+		mongoStore.get(socket.sessionID, function (err, session) {
+			console.log('base64Image.length = ' + base64Image.length);
+			assert.equal(null, err);
+			socket.broadcast.emit('user-image', session.username, base64Image);
+		});
+	});
+
 });
