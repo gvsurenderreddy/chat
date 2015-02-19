@@ -4,6 +4,7 @@ var bodyParser = require('body-parser'); // Charge le middleware de gestion des 
 var urlencodedParser = bodyParser.urlencoded({
 		extended : false
 	});
+var express = require('express');
 
 module.exports = function (app) {
 
@@ -136,30 +137,14 @@ module.exports = function (app) {
 		}
 	});
 
-	// RESOURCES FILES
-
-	app.get('/moment/:momentFile', function (req, res, next) {
-		res.sendFile(__dirname + '/node_modules/moment/' + req.params.momentFile);
-	});
-	app.get('/bootstrap/:bootstrapFile', function (req, res, next) {
-		res.sendFile(__dirname + '/node_modules/bootstrap/dist/css/' + req.params.bootstrapFile);
-	});
-	app.get('/css/:cssFile', function (req, res, next) {
-		res.sendFile(__dirname + '/css/' + req.params.cssFile);
-	});
-	app.get('/js/:jsFile', function (req, res, next) {
-		res.sendFile(__dirname + '/js/' + req.params.jsFile);
-	});
-	app.get('/font-awesome/:dir/:file', function (req, res, next) {
-		// todo: n'autoriser que les caractères alphanum et le tiret... pour les vars en entrée (dir et file)
-		// var dirRegEx = /^([\w|\-]+)$;
-		// var one = new RegExp(dirRegEx, 'i');
-		// var matches = req.params.file.match(many);
-		// return matches.filter(function (value, index) {
-			// return matches.indexOf(value) === index;
-		// });
-		res.sendFile(__dirname + '/node_modules/font-awesome/' + req.params.dir + '/' + req.params.file);
-	});
+	// RESOURCES FILES : PUBLIC
+	app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist'));
+	app.use('/moment', express.static(__dirname + '/node_modules/moment'));
+	app.use('/css', express.static(__dirname + '/css'));
+	app.use('/js', express.static(__dirname + '/js'));
+	app.use('/font-awesome', express.static(__dirname + '/node_modules/font-awesome'));
+	
+	// PAGE NON TROUVEE ...	
 	app.use(function (req, res, next) {
 		// Page non trouvée ? redirection vers /
 		res.redirect('/');

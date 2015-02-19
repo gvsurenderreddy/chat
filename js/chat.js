@@ -8,9 +8,11 @@ var isTyping = false;
 
 socket.on('refresh-connected-users', function (data) {
 	console.log('refresh-connected-users data = ' + data);
-	$('#users').empty();
-	for (var i in data) {
-		$('#users').append($('li').text(data[i].username));
+	$('#connected-users').empty();
+	console.log("data: " + data);
+	var users = data.connectedUsers;
+	for (var i in users) {
+		$('#connected-users').append($('<li/>').text(users[i].username));
 	}
 });
 socket.on('stopped-typing', function (username) {
@@ -143,10 +145,9 @@ var displayMessage = function (message) {
 	scrollToBottom();
 };
 var scrollToBottom = function () {
-	$('body').animate({
-		scrollTop : $('body')[0].scrollHeight
+	$('#main').animate({
+		scrollTop : $('#main')[0].scrollHeight
 	}, 1000);
-	//$('body').get(0).scrollTop = 10000000;
 };
 var displayImage = function (username, base64Image) {
 	console.log("username: " + username + ", base64Image.length: " + base64Image.length);
