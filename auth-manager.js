@@ -6,24 +6,35 @@ var config = require('./config');
 module.exports = {
 	/** Vérification des inforamtions de connexion */
 	checkCredentials : function (username, password, callback) {
-		// création de l'objet UserManagement.
-		var users = new UserManagement(config.userMgmtOptions);
 
-		// The load method connects to MongoDB and loads the user management database.
-		users.load(function (err) {
-			// gestion d'erreurs
-			assert.equal(null, err);
-			users.authenticateUser(username, password, function (err, result) {
-				// verif de la var "err"
+		// vérification des paramètres en entrée :
+		assert.equal(typeof(username), 'string', "'username' must be a string.");
+		assert.equal(typeof(password), 'string', "'password' must be a string.");
+		assert.equal(typeof(callback), 'function');
+
+		try {
+			// création de l'objet UserManagement.
+			var users = new UserManagement(config.userMgmtOptions);
+
+			// The load method connects to MongoDB and loads the user management database.
+			users.load(function (err) {
+				// gestion d'erreurs
 				assert.equal(null, err);
+				users.authenticateUser(username, password, function (err, result) {
+					// verif de la var "err"
+					assert.equal(null, err);
 
-				// fermeture de l'objet users.
-				users.close();
+					// fermeture de l'objet users.
+					users.close();
 
-				// appel au callback passé en paramètre
-				callback(result);
+					// appel au callback passé en paramètre
+					callback(result);
+				});
 			});
-		});
+
+		} catch (e) {
+			console.log('e=' + e);
+		}
 	},
 	/** vérif du jeton */
 	checkToken : function (token, callback) {

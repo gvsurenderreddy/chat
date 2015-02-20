@@ -31,6 +31,9 @@ app.use(session({
 		}
 	}));
 
+// affichage du numero de version de node.js
+console.log(process.versions);
+
 // Initialise REST routes
 require('./app-routes')(app);
 
@@ -155,7 +158,7 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('user-image', function (base64Image) {
 		console.log('message "user-image" received !');
-		
+
 		// récupérer le nom d'utilisateur via la session de la websocket:
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log('base64Image.length = ' + base64Image.length);
@@ -164,4 +167,13 @@ io.sockets.on('connection', function (socket) {
 		});
 	});
 
+	socket.on('user-status', function(data) {
+		//console.log("message:" + message);
+		assert.equal(typeof(data), 'object', "data mustbe an object.");
+		
+		console.log("user-status: " + data.status);
+		// console.log(data.username);
+		// console.log(data.status);
+
+	});
 });

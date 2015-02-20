@@ -48,6 +48,31 @@ socket.on('error', function (e) {
 	displayMessage(e ? e : 'An unknown error has occurred.');
 });
 
+$('#userstatus-available').click(function () {
+	$('ul.dropdown-menu a.selected').removeClass('selected');
+	$(this).toggleClass('selected');
+	socket.emit('user-status', {
+		username : USERNAME,
+		status : 'available'
+	});
+});
+$('#userstatus-busy').click(function () {
+	$('ul.dropdown-menu a.selected').removeClass('selected');
+	$(this).toggleClass('selected');
+	socket.emit('user-status', {
+		username : USERNAME,
+		status : 'busy'
+	});
+});
+$('#userstatus-donotdisturb').click(function () {
+	$('ul.dropdown-menu a.selected').removeClass('selected');
+	$(this).toggleClass('selected');
+	socket.emit('user-status', {
+		username : USERNAME,
+		status : 'donotdisturb'
+	});
+});
+
 // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
 $('form').submit(function () {
 	// récupération du message saisi par l'utilisateur
