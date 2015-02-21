@@ -28,7 +28,7 @@
 	height: 100%;
 	padding: 0px 0 0px 0;
 	position: fixed;
-	border-right: 1px solid gray;
+	border-right: 1px solid #E7E7E7;
 }
 #sidebar {
 	position: relative;

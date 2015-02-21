@@ -12,7 +12,7 @@ socket.on('refresh-connected-users', function (data) {
 	console.log("data: " + data);
 	var users = data.connectedUsers;
 	for (var i in users) {
-		$('#connected-users').append($('<li/>').text(users[i].username));
+		$('#connected-users').append($('<li/>').html('<span class="glyphicon glyphicon-user"></span> ' + users[i].username + ' - ' +users[i].status));
 	}
 });
 socket.on('stopped-typing', function (username) {

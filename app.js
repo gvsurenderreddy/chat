@@ -171,9 +171,13 @@ io.sockets.on('connection', function (socket) {
 		//console.log("message:" + message);
 		assert.equal(typeof(data), 'object', "data mustbe an object.");
 		
-		console.log("user-status: " + data.status);
-		// console.log(data.username);
-		// console.log(data.status);
-
+		// mise à jour du status de l'utilisateur via le sous-module connected-users-helper :
+		connectedUsersHelper.updateStatus(socket.sessionID, ent.encode(data.status));
+		
+		// on broadcaste le message de refresh de la liste des utilisateurs :
+		io.sockets.emit('refresh-connected-users', {
+			"connectedUsers" : connectedUsersHelper.getLite()
+		});
+		console.log("username: " + data.username + ", user-status: " + data.status);
 	});
 });
