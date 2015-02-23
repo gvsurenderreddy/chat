@@ -108,7 +108,9 @@ module.exports = function (app) {
 			console.log("test = " + test);
 
 			if (test === false) {
-				res.render(config.templatesUrls.signIn, { error : "Caractères invalides détectés. Impossible de créer l'utilisateur avec ce login. Choisissez un nom contenant uniquement des caractères alphanumériques, un tiret ou un underscore." });
+				res.render(config.templatesUrls.signIn, {
+					error : "Caractères invalides détectés. Impossible de créer l'utilisateur avec ce login. Choisissez un nom contenant uniquement des caractères alphanumériques, un tiret ou un underscore."
+				});
 				return;
 			}
 
@@ -136,6 +138,12 @@ module.exports = function (app) {
 			});
 		}
 	});
+	app.get('/api/:resource', requireLogin, function (req, res, next) {
+		if (req.params.resource == "users-status") {
+			res.setHeader('Content-Type', 'application/json');
+			res.end(JSON.stringify(config.usersStatus));
+		}
+	});
 
 	// RESOURCES FILES : PUBLIC
 	app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist'));
@@ -143,8 +151,8 @@ module.exports = function (app) {
 	app.use('/css', express.static(__dirname + '/css'));
 	app.use('/js', express.static(__dirname + '/js'));
 	app.use('/font-awesome', express.static(__dirname + '/node_modules/font-awesome'));
-	
-	// PAGE NON TROUVEE ...	
+
+	// PAGE NON TROUVEE ...
 	app.use(function (req, res, next) {
 		// Page non trouvée ? redirection vers /
 		res.redirect('/');

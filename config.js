@@ -5,6 +5,7 @@ module.exports = {
 		secret : 'chat_secret',
 		name : 'sid'
 	},
+	/** object options passé au constructeur du module UserManagement. */
 	userMgmtOptions : {
 		hostname : 'localhost', // valeur par défaut
 		port : 27017, // valeur par défaut
@@ -17,5 +18,23 @@ module.exports = {
 		logOut : 'logout.ejs',
 		signIn : 'signin.ejs'
 	},
-	mongodbUrl : "mongodb://localhost:27017/chatdb"
+	mongodbUrl : "mongodb://localhost:27017/chatdb",
+	defaultUserStatus : 'userstatus-available',
+	usersStatus : [{
+			id : 'userstatus-available',
+			name : 'Available',
+			cssClass : 'glyphicon-ok'
+		}, {
+			id : 'userstatus-busy',
+			name : 'Busy',
+			cssClass : 'glyphicon-time'
+		}, {
+			id : 'userstatus-donotdisturb',
+			name : 'Do Not Disturb',
+			cssClass : 'glyphicon-exclamation-sign'
+		}, {
+			id : 'userstatus-afk',
+			name : 'Away from keyboard',
+			cssClass : 'glyphicon-briefcase'
+		}]
 };

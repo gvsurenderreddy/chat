@@ -12,7 +12,8 @@ var ejs = require('ejs'); // templating ejs
 var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
 var chatDbService = require('./chat-db-service'); // charge le service de base de données du chat
 var URLRegExp = require('url-regexp');
-var moment = require('moment'); // utilitarie de formatage des dates
+var moment = require('moment'); // utilitaire de formatage des dates
+var usersStatusHelper = require('./users-status-helper');
 
 app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
 app.set('view engine', 'ejs'); // moteur de template = ejs
@@ -67,7 +68,7 @@ io.sockets.on('connection', function (socket) {
 	mongoStore.get(socket.sessionID, function (err, session) {
 
 		// ajout de l'utilisateur à la liste des utilisateurs connectés
-		connectedUsersHelper.add(socket.sessionID, session.username);
+		connectedUsersHelper.add(socket.sessionID, session.username, usersStatusHelper.getDefault());
 
 		// on broadcaste l'énènement de connexion d'un nouvel utilisateur.
 		socket.broadcast.emit('user-connected', {
@@ -167,17 +168,25 @@ io.sockets.on('connection', function (socket) {
 		});
 	});
 
+	/** Un utilisateur vient de mettre à jour son statut. */
 	socket.on('user-status', function(data) {
-		//console.log("message:" + message);
+		// verification :
 		assert.equal(typeof(data), 'object', "data mustbe an object.");
 		
+		// récupération du nouveau statut à partir de l'id
+		var statusObj = usersStatusHelper.get(data.status);
+		
+		// on quitte si le status == null
+		if (statusObj == null) return;
+		
 		// mise à jour du status de l'utilisateur via le sous-module connected-users-helper :
-		connectedUsersHelper.updateStatus(socket.sessionID, ent.encode(data.status));
+		connectedUsersHelper.updateStatus(socket.sessionID, statusObj);
 		
 		// on broadcaste le message de refresh de la liste des utilisateurs :
 		io.sockets.emit('refresh-connected-users', {
 			"connectedUsers" : connectedUsersHelper.getLite()
 		});
+		
 		console.log("username: " + data.username + ", user-status: " + data.status);
 	});
 });

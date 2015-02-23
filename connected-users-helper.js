@@ -1,42 +1,43 @@
 ﻿var assert = require('assert');
+var config = require('./config');
 
 var self = module.exports = {
 	_users : [],
 	_usersLight : [],
 
-	_defaultStatus : 'available',
-
 	/** ajout d'un utilisateur connecté */
-	add : function (sessionId, username) {
+	add : function (sessionId, username, statusObj) {
 		// vérif
 		assert.equal(typeof(sessionId), 'string', "'sessionId' must be of type string.");
 		assert.equal(typeof(username), 'string', "'username' must be of type string.");
+		assert.equal(typeof(statusObj), 'object', "'statusObj' must be of type object.");
 
 		if (self.indexOf(sessionId) == -1) {
 			self._users.push({
 				"sessionId" : sessionId,
 				"username" : username,
 				"connectionDate" : new Date(),
-				"status" : self._defaultStatus
+				"status" : statusObj
 			});
 			self._usersLight.push({
 				"username" : username,
-				"status" : self._defaultStatus
+				"status" : statusObj
 			});
 		}
 	},
 
 	/** update */
-	updateStatus : function (sessionId, status) {
+	updateStatus : function (sessionId, statusObj) {
 		// vérif
 		assert.equal(typeof(sessionId), 'string', "'sessionId' must be of type string.");
-		assert.equal(typeof(status), 'string', "'status' must be of type string.");
+		assert.equal(typeof(statusObj), 'object', "'statusObj' must be of type object.");
 		
 		var index = self.indexOf(sessionId);
 		if (index != -1) {
+			
 			// mettre à jour le statut de l'utilisateur
-			self._users[index].status = status;
-			self._usersLight[index].status = status;
+			self._users[index].status = statusObj;
+			self._usersLight[index].status = statusObj;
 		}
 	},
 

@@ -7,12 +7,12 @@ var socket = io();
 var isTyping = false;
 
 socket.on('refresh-connected-users', function (data) {
-	console.log('refresh-connected-users data = ' + data);
+	//console.log('refresh-connected-users data = ' + data);
 	$('#connected-users').empty();
-	console.log("data: " + data);
+	//console.log("data: " + data);
 	var users = data.connectedUsers;
 	for (var i in users) {
-		$('#connected-users').append($('<li/>').html('<span class="glyphicon glyphicon-user"></span> ' + users[i].username + ' - ' +users[i].status));
+		$('#connected-users').append($('<li/>').html('<span class="glyphicon ' + users[i].status.cssClass + '"></span> ' + users[i].username + ' - ' + users[i].status.name));
 	}
 });
 socket.on('stopped-typing', function (username) {
@@ -46,31 +46,6 @@ socket.on('user-disconnected', function (data) {
 socket.on('user-image', displayImage);
 socket.on('error', function (e) {
 	displayMessage(e ? e : 'An unknown error has occurred.');
-});
-
-$('#userstatus-available').click(function () {
-	$('ul.dropdown-menu a.selected').removeClass('selected');
-	$(this).toggleClass('selected');
-	socket.emit('user-status', {
-		username : USERNAME,
-		status : 'available'
-	});
-});
-$('#userstatus-busy').click(function () {
-	$('ul.dropdown-menu a.selected').removeClass('selected');
-	$(this).toggleClass('selected');
-	socket.emit('user-status', {
-		username : USERNAME,
-		status : 'busy'
-	});
-});
-$('#userstatus-donotdisturb').click(function () {
-	$('ul.dropdown-menu a.selected').removeClass('selected');
-	$(this).toggleClass('selected');
-	socket.emit('user-status', {
-		username : USERNAME,
-		status : 'donotdisturb'
-	});
 });
 
 // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
@@ -178,3 +153,44 @@ var displayImage = function (username, base64Image) {
 	console.log("username: " + username + ", base64Image.length: " + base64Image.length);
 	$('#messages').append($('<ul>').append($('<b>').text(username), '<img src=\'' + base64Image + '\' />'));
 };
+
+var usersStatus = [];
+var displayUsersStatus = function(data) {
+	if (typeof(data) === 'undefined') return;
+	usersStatus = data;
+	for (var i in usersStatus) {
+		var obj = usersStatus[i];
+		console.log('obj.id:' + obj.id);
+		$('#users-status').append('<li><a href="#" id="' + obj.id + '" onclick="displayUsersStatus_callback(' + i + ');"><span class="glyphicon ' + obj.cssClass + '" aria-hidden="true"></span>&nbsp;' + obj.name + '</a></li>');
+	}
+};
+var displayUsersStatus_callback = function (index) {
+	
+	var obj = usersStatus[index];
+	
+	// on supprime la classe "selected" de tous les éléments de type a possédant la classe selected
+	$('ul.dropdown-menu a.selected').removeClass('selected');
+
+	// on ajoute la classe selected à l'élément cliqué, c'est-à-dire $(this)
+	$(this).toggleClass('selected');
+
+	// on envoie l'évènement/message au serveur
+	socket.emit('user-status', {
+		username : USERNAME,
+		status : obj.id
+	});
+};
+
+/** Code exécuté lorsque le document est prêt */
+$(document).ready(function () {
+	// make ajax call:
+	var request = $.ajax('/api/users-status');
+	request.done(function (data) {
+		displayUsersStatus(data);
+		
+		
+	});
+	request.fail(function () {
+		alert('Error occurred!');
+	});
+});
