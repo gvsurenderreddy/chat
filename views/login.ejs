@@ -16,9 +16,22 @@
 				<div class="modal-header">
 					 <h4 class="modal-title" id="myModalLabel">Authentification requise</h4>
 				</div>
+				
+				<% if (typeof(error) != "undefined") { %>
+				<div class="modal-header">
+					<p class="err"><%= error %></p>
+				</div>
+				<% } %>
+				
+				<% if (typeof(message) != "undefined") { %>
+				<div class="modal-header">
+					<p class="msg"><%= message %></p>
+				</div>
+				<% } %>
+				
 				<div class="modal-body">
 					<div class="row">
-						<div class="col-xs-6">
+						<div class="col-md-6">
 							<div class="well">
 								<form action="/login" method="post" id="login_chat">
 									<div class="form-group">
@@ -32,57 +45,32 @@
 									<% if (typeof(error) != "undefined") { %>
 									<div id="loginErrorMsg" class="alert alert-error"><%= error %></div>
 									<% } %>
-									<div class="checkbox">
+									<!-- <div class="checkbox">
 										<label><input type="checkbox" name="remember" id="remember">Remember login</label>
 										<p class="help-block">(if this is a private computer)</p>
-									</div>
-									<button type="submit" class="btn btn-success btn-block">Login</button>
+									</div> -->
+									<button type="submit" class="btn btn-success btn-block">Connexion</button>
 								</form>
 							</div>
 						</div>
-						<div class="col-xs-6">
-							<p class="lead">Register now for <span class="text-success">FREE</span>
+						<div class="col-md-6">
+							<p class="lead">Inscrivez-vous <span class="text-success">gratuitement</span>
 							</p>
 							<ul class="list-unstyled" style="line-height: 2">
-								<li><span class="fa fa-check text-success"></span> See all your orders</li>
-								<li><span class="fa fa-check text-success"></span> Fast re-order</li>
-								<li><span class="fa fa-check text-success"></span> Save your favorites</li>
-								<li><span class="fa fa-check text-success"></span> Fast checkout</li>
+								<li><span class="fa fa-check text-success"></span> Messagerie instantan&eacute;e </li>
+								<li><span class="fa fa-check text-success"></span> Serveur en Node.js, socket.io</li>
+								<li><span class="fa fa-check text-success"></span> Fonctionne avec la technologie WebSockets</li>
+								<!-- <li><span class="fa fa-check text-success"></span> Fast checkout</li>
 								<li><span class="fa fa-check text-success"></span> Get a gift <small>(only new customers)</small>
-								</li>
-								<li>&nbsp;</li>
+								</li> -->
+								<!-- <li>&nbsp;</li> -->
 							</ul>
-							<p><a href="/signin" class="btn btn-info btn-block">Yes please, register now!</a>
+							<p><a href="/signin" class="btn btn-info btn-block">Je m'inscris</a>
 							</p>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-					
-		<!--<h1>Se connecter</h1>
-		
-		<% if (typeof(error) != "undefined") { %>
-		<p class="err"><%= error %></p>
-		<% } %>
-		
-		<% if (typeof(message) != "undefined") { %>
-		<p class="msg"><%= message %></p>
-		<% } %>
-		
-		<form action="/login" method="post" id="login_chat">
-			<div>
-				<label for="login">Login:&nbsp;</label>
-				<input type="text" name="login" id="login" placeholder="Votre login..." size="50" autofocus />
-			</div>
-			<div>
-				<label for="password">Mot de passe:&nbsp;</label>
-				<input type="password" name="password" id="password" size="50" />
-			</div>
-			<input type="submit" value="Envoyer" />
-		</form>
-		
-		<p>Pas inscrit ? <a href="/signin">Inscription</a></p>
-		-->
 	</body>
 </html>

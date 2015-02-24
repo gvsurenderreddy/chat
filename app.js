@@ -109,33 +109,32 @@ io.sockets.on('connection', function (socket) {
 	});
 
 	// New message from client = "write" event
-	socket.on('message', function (message) {
+	socket.on('message', function (messageData) {
 
-		console.log("message:" + message);
+		console.dir(messageData);
 
-		if (message == null)
+		if (messageData == null)
 			return;
 
 		mongoStore.get(socket.sessionID, function (err, session) {
-			console.log('Message recu : ' + message + ', username: ' + session.username);
-
 			// on vérifie le message : s'il contient une url, on l'affiche sous forme de lien cliquable
-			var msgSplitArray = ent.encode(message).split(' ');
+			var msgSplitArray = ent.encode(messageData.msg).split(' ');
 
 			for (var i in msgSplitArray) {
 				var urlMatches = URLRegExp.match(msgSplitArray[i]);
 				if (urlMatches.length == 1)
 					msgSplitArray[i] = '<a href="' + urlMatches[0] + '" target="_blank">' + urlMatches[0] + '</a>';
 			}
-			message = msgSplitArray.join(" ");
+			messageData.msg = msgSplitArray.join(" ");
 
 			var messageObject = {
 				username : session.username,
-				message : message,
+				message : messageData.msg,
+				location: messageData.location,
 				date : Date.now()
 			};
 			chatDbService.insertMessage(messageObject, function () {
-				console.log("chatDbService.insertMessage(" + session.username + ")");
+				console.log("chatDbService.insertMessage success");
 			});
 
 			io.sockets.emit('message', messageObject);
@@ -164,12 +163,16 @@ io.sockets.on('connection', function (socket) {
 		mongoStore.get(socket.sessionID, function (err, session) {
 			console.log('base64Image.length = ' + base64Image.length);
 			assert.equal(null, err);
-			socket.broadcast.emit('user-image', session.username, base64Image);
+			socket.broadcast.emit('user-image', session.username, ent.encode(base64Image));
 		});
 	});
 
 	/** Un utilisateur vient de mettre à jour son statut. */
 	socket.on('user-status', function(data) {
+		
+		// un peu de log
+		console.dir(data);
+		
 		// verification :
 		assert.equal(typeof(data), 'object', "data mustbe an object.");
 		

@@ -2,6 +2,86 @@
 /** chat.js : client file */
 /**************************/
 
+/** GEOLOCALISATION */
+var geolocationHelper = self = {
+
+	geocoder : null,
+	currentUserGeocodeResult : null,
+	currentUserAddress : null,
+	currentUserCity : null,
+	currentUserCountry : null,
+
+	reset : function () {
+		self.geocoder = null;
+		self.currentUserGeocodeResult = null;
+		self.currentUserAddress = null;
+		self.currentUserCity = null;
+		self.currentUserCountry = null;
+	},
+	/** Get the latitude and the longitude; */
+	success : function (position) {
+		var lat = position.coords.latitude;
+		var lng = position.coords.longitude;
+		self.codeLatLng(lat, lng);
+	},
+	error : function () {
+		alert("Geocoder failed");
+		console.log("Geocoder failed");
+	},
+	initialiseGeolocation : function () {
+		console.log("init. de la géolocalisation...");
+
+		if (navigator.geolocation)
+			navigator.geolocation.getCurrentPosition(self.success, self.error);
+
+		//console.log("géolocalisation " + navigator.geolocation ? "activée" : "désactivée");
+
+		self.geocoder = new google.maps.Geocoder();
+	},
+	codeLatLng : function (lat, lng) {
+
+		var latlng = new google.maps.LatLng(lat, lng);
+		self.geocoder.geocode({
+			'latLng' : latlng
+		}, function (results, status) {
+			if (status == google.maps.GeocoderStatus.OK) {
+
+				console.log(results);
+				self.currentUserGeocodeResult = results;
+
+				if (results[1]) {
+					//formatted address
+					self.currentUserAddress = results[0].formatted_address;
+
+					//find country name
+					for (var i = 0; i < results[0].address_components.length; i++) {
+						for (var b = 0; b < results[0].address_components[i].types.length; b++) {
+
+							// city data
+							if (results[0].address_components[i].types[b] == "locality") {
+								if (self.currentUserCity == null)
+									self.currentUserCity = results[0].address_components[i].long_name;
+							}
+
+							// country data
+							if (results[0].address_components[i].types[b] == "country") {
+								if (self.currentUserCountry == null)
+									self.currentUserCountry = results[0].address_components[i].long_name;
+							}
+						}
+					}
+				} else {
+					console.log("No results found");
+				}
+			} else {
+				console.log("Geocoder failed due to: " + status);
+			}
+		});
+	}
+};
+
+
+/** SOCKET.IO */
 var socket = io();
 
 var isTyping = false;
@@ -29,23 +109,23 @@ socket.on('user-typing', function (data) {
 socket.on('message', function (data) {
 	var momentDate = moment(data.date);
 	console.log('il y a ' + momentDate.fromNow());
-	addMessage(data.username, data.message, momentDate.format());
+	addMessage(data.username, data.message, momentDate.format(), data.location);
 });
 socket.on('disconnect', function () {
-	displayMessage("Vous avez été déconnecté du serveur de chat.");
+	displayMessage('<i class="fa fa-times-circle"></i> Vous avez été déconnecté du serveur de chat.');
 });
 socket.on('connect', function () {
-	displayMessage('<em>Vous êtes à présent connecté au serveur de chat en tant que <strong>' + USERNAME + '</strong>.</em>');
+	displayMessage('<i class="fa fa-check-circle"></i> <em>Vous êtes à présent connecté au serveur de chat en tant que <strong>' + USERNAME + '</strong>.</em>');
 });
 socket.on('user-connected', function (data) {
 	displayMessage(data.username + ' a rejoint le Chat !');
 });
 socket.on('user-disconnected', function (data) {
-	displayMessage(data.username + ' a quitté la discussion.');
+	displayMessage('<i class="fa fa-times-circle"></i> ' + data.username + ' a quitté la discussion.');
 });
 socket.on('user-image', displayImage);
-socket.on('error', function (e) {
-	displayMessage(e ? e : 'An unknown error has occurred.');
+socket.on('error', function (err) {
+	displayMessage('<i class="fa fa-exclamation-circle"></i> ' + (err ? err : 'An unknown error has occurred.'));
 });
 
 // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
@@ -58,7 +138,15 @@ $('form').submit(function () {
 		return false;
 
 	// On transmet le message au serveur
-	socket.emit('message', message);
+	socket.emit('message', {
+		msg : message,
+		location : {
+			//geocodeResult: geolocationHelper.currentUserGeocodeResult,
+			address: geolocationHelper.currentUserAddress,
+			country: geolocationHelper.currentUserCountry,
+			city: geolocationHelper.currentUserCity
+		}
+	});
 
 	// Vide la zone de Chat et remet le focus dessus
 	$('#message').val('').focus();
@@ -74,13 +162,17 @@ $('#message').keydown(function (event) {
 	if (event.which == 8) {
 		var message = $('#message').val();
 		//console.log('message: ' + message);
-		if (message == '' && isTyping == true) {
+		if (message.length == 0) {
+			isTyping = false;
+			return;
+		}
+		if (message.length == 1 && isTyping == true) {
 			socket.emit('stopped-typing', USERNAME);
 			isTyping = false;
 			return;
 		}
 	}
-	if (event.which != 13) {
+	else if (event.which != 13) {
 		isTyping = true;
 		socket.emit('user-typing', {
 			"username" : USERNAME,
@@ -88,6 +180,14 @@ $('#message').keydown(function (event) {
 		});
 	}
 });
+$('#message').change(function(){
+	var message = $('#message').val();
+	if (message.length == 0 && isTyping == true) {
+		socket.emit('stopped-typing', USERNAME);
+		isTyping = false;
+		return;
+	}
+})
 
 $('#imagefile').bind('change', function (e) {
 	var data = e.originalEvent.target.files[0];
@@ -100,8 +200,8 @@ $('#imagefile').bind('change', function (e) {
 });
 
 // Ajoute un message dans la page
-var addMessage = function (username, message, date) {
-	// 0: username, 1: user's avatar, 2: date, 3: message
+var addMessage = function (username, message, date, location) {
+	// 0: username, 1: user's avatar, 2: date, 3: message, 4: localisation
 	var html_leftAlign =
 		'<li class="left clearfix">' +
 		'<span class="chat-img pull-left">' +
@@ -138,6 +238,11 @@ var addMessage = function (username, message, date) {
 	var avatar = (username == USERNAME) ? "http://placehold.it/50/55C1E7/fff" : "http://placehold.it/50/FA6F57/fff";
 	html = String.format(html, username, avatar, date, message);
 	$('#messages').append(html);
+	
+	if (location.city != null) {
+		$('strong.primary-font:last').append('<small class="text-muted"><i class="fa fa-location-arrow fa-fw"></i>A proximit&eacute; de ' + location.city + '</small>');
+	}
+	
 	scrollToBottom();
 };
 var displayMessage = function (message) {
@@ -161,10 +266,10 @@ var displayUsersStatus = function(data) {
 	for (var i in usersStatus) {
 		var obj = usersStatus[i];
 		console.log('obj.id:' + obj.id);
-		$('#users-status').append('<li><a href="#" id="' + obj.id + '" onclick="displayUsersStatus_callback(' + i + ');"><span class="glyphicon ' + obj.cssClass + '" aria-hidden="true"></span>&nbsp;' + obj.name + '</a></li>');
+		$('#users-status').append('<li><a href="#" id="' + obj.id + '" onclick="changeUserStatus(' + i + ');"><span class="glyphicon ' + obj.cssClass + '" aria-hidden="true"></span>&nbsp;' + obj.name + '</a></li>');
 	}
 };
-var displayUsersStatus_callback = function (index) {
+var changeUserStatus = function (index) {
 	
 	var obj = usersStatus[index];
 	
@@ -177,18 +282,26 @@ var displayUsersStatus_callback = function (index) {
 	// on envoie l'évènement/message au serveur
 	socket.emit('user-status', {
 		username : USERNAME,
-		status : obj.id
+		status : obj.id,
+		geolocation : {
+			//geocodeResult: geolocationHelper.currentUserGeocodeResult,
+			address: geolocationHelper.currentUserAddress,
+			country: geolocationHelper.currentUserCountry,
+			city: geolocationHelper.currentUserCity
+		}
 	});
 };
 
 /** Code exécuté lorsque le document est prêt */
 $(document).ready(function () {
+	
+	// initialisation de la géo-localisation
+	geolocationHelper.initialiseGeolocation();
+	
 	// make ajax call:
 	var request = $.ajax('/api/users-status');
 	request.done(function (data) {
 		displayUsersStatus(data);
-		
-		
 	});
 	request.fail(function () {
 		alert('Error occurred!');
