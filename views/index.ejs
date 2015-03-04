@@ -19,7 +19,7 @@
 	<body>
 
 		<!-- header -->
-		<div id="header" class="navbar navbar-default navbar-fixed-top">
+		<div id="header" class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-header">
 				<button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target=".navbar-collapse">
 					<i class="icon-reorder"></i>
@@ -67,18 +67,32 @@
 			<!-- sidebar-wrapper -->
 			<div id="sidebar-wrapper" class="col-md-2">
 				<div id="sidebar">
-					<ul id="connected-users" class="nav list-group"></ul>
+					<h5 class="panel-heading">
+						<span class="glyphicon glyphicon-user" aria-hidden="true"></span> Connected Users
+					</h5>
+					<ul id="connected-users" class="nav"></ul>
 				</div>
 			</div>
 			<!-- /sidebar-wrapper -->
 			
 			<!-- main-wrapper -->
-			<div id="main-wrapper" class="col-md-10 pull-right">
+			<div id="main-wrapper" class="col-md-6">
 				<div id="main">
 					<ul id="messages"></ul>
 				</div>
 			</div>
 			<!-- /main-wrapper -->
+			
+			<!-- sidebar-wrapper -->
+			<div id="sidebar-wrapper" class="col-md-4">
+				<div id="sidebar">
+					<h5 class="panel-heading">
+						<span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>&nbsp;&nbsp;Shared files
+					</h5>
+					<ul id="shared-files" class="nav list-group"></ul>
+				</div>
+			</div>
+			<!-- /sidebar-wrapper -->
 			
 		</div>
 		<!-- /wrapper -->

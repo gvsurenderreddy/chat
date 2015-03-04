@@ -27,8 +27,8 @@
 #sidebar-wrapper {
 	height: 100%;
 	padding: 0px 0 0px 0;
-	position: fixed;
 	border-right: 1px solid #E7E7E7;
+	border-left: 1px solid #E7E7E7;
 }
 #sidebar {
 	position: relative;
@@ -100,7 +100,7 @@ a.selected {
 }
 @media (min-width: 992px) {
 	#main-wrapper {
-		float:right;
+		/*float:right;*/
 	}
 }
 @media (max-width: 992px) {
@@ -115,4 +115,12 @@ a.selected {
 		max-height: 300px;
 		border-right:0;
 	}
+}
+
+.panel-heading {
+	margin: 0px !important;
+	// padding: 5px !important;
+	background-image: linear-gradient(to bottom, #FFF 0%, #F8F8F8 100%);
+	background-repeat: repeat-x;
+	border-bottom: 1px solid #e7e7e7;
 }
