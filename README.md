@@ -9,7 +9,7 @@ A basic chat with Node.js, socket.io, the native mongodb module and a simple use
 - Geolocation in messages (can be turned off)
 - Bootstrap-enhanced UI
 
-# Todo
+## Todo
 - Binary file transfer
 - Image transfer
 - Multiple chat rooms
