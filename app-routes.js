@@ -43,7 +43,8 @@ module.exports = function (app) {
 
 	app.get('/', requireLogin, function (req, res, next) {
 		res.render(config.templatesUrls.index, {
-			'username' : req.session.username
+			'username' : req.session.username,
+			'blockSize' : config.fileUpload.blockSize
 		});
 	});
 	app.post('/login', urlencodedParser, function (req, res) {

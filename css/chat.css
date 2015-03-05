@@ -1,9 +1,11 @@
-﻿body {
+﻿body
+{
 	padding-top: 50px;
 	padding-bottom: 50px;
 	overflow: hidden;
 }
-#wrapper {
+#wrapper
+{
 	min-height: 100%;
 	height: 100%;
 	width: 100%;
@@ -13,114 +15,149 @@
 	left: 0;
 	display: inline-block;
 }
-#main-wrapper {
-	height: 100%;
-	overflow-y: auto;
-	padding: 0px 0 100px 0;
-}
-#main {
+#main
+{
 	position: relative;
-	height: 100%;
+	/*height: 100%;*/
 	overflow-y: auto;
 	padding: 10px;
 }
-#sidebar-wrapper {
+#sidebar-wrapper
+{
 	height: 100%;
 	padding: 0px 0 0px 0;
 	border-right: 1px solid #E7E7E7;
 	border-left: 1px solid #E7E7E7;
 }
-#sidebar {
+#sidebar
+{
 	position: relative;
 	height: 100%;
 	overflow-y: auto;
 }
-#sidebar .list-group-item {
+#sidebar .list-group-item
+{
 		border-radius: 0;
 		border-left: 0;
 		border-right: 0;
 		border-top: 0;
 }
-#footer{
+#footer
+{
 	padding: 10px 15px;
 }
-#main ul {
+#main ul
+{
 	margin: 0;
 	padding: 0;
 	list-style: none;
 	list-style: none;
 }
-#main li{
+#main li
+{
 	/*margin: 10px;*/
 	padding: 5px;
 	border-bottom: 1px dotted #999;
 }
-#main div.header{
+#main div.header
+{
 	padding-left: 10px;
 }
-#main li.left .chat-body {
+#main li.left .chat-body
+{
 	margin-left: 60px;
 }
-
-#main li.right .chat-body {
+#main li.right .chat-body
+{
 	margin-right: 60px;
 }
-
-#main li .chat-body p {
+#main li .chat-body p
+{
 	margin: 0;
 }
-
-#main li.left div.chat-body p {
+#main li.left div.chat-body p
+{
 	padding-left: 10px;
 }
-#main li.right div.chat-body p {
+#main li.right div.chat-body p
+{
 	padding-right: 10px;
 }
-#main li.right .chat-body{
+#main li.right .chat-body
+{
 	margin-left: 0px;
 }
-
-#main li.right div.header{
+#main li.right div.header
+{
 	padding-left: 0px;
 }
-
-div#sidebar ul{
+div#sidebar ul
+{
 	margin: 10px;
 }
-
-a.selected {
+a.selected
+{
 	background-color: #E7E7E7;
 	color: #555 !important;
 }
-
-@media (max-width: 992px) {
-	body {
-		padding-top: 0px;
+/** La taille de l'écran est AU MAXIMUM de 992px. */
+@media (max-width: 992px)
+{
+	body { padding-top: 0px; }
+	#main-wrapper
+	{ 
+		/*padding-top: 0px;*/
+		/*height: 100%;*/
+		overflow-y: auto;
+		/*padding: 0px 0 100px 0;*/
+		border-top: 1px solid #E7E7E7;
+		border-bottom: 1px solid #E7E7E7;
 	}
-}
-@media (min-width: 992px) {
-	#main-wrapper {
-		/*float:right;*/
-	}
-}
-@media (max-width: 992px) {
-	#main-wrapper {
-		padding-top: 0px;
-	}
-}
-@media (max-width: 992px) {
-	#sidebar-wrapper {
+	#sidebar-wrapper
+	{
 		position: static;
-		height:auto;
-		max-height: 300px;
-		border-right:0;
+		height: auto;
+		border-right: 0;
+		border-left: 0;
+	}
+	#wrapper
+	{
+		padding-bottom: 51px;
 	}
 }
-
-.panel-heading {
+/** La taille de l'écran est AU MINIMUM de 992px. */
+@media (min-width: 992px)
+{
+	#main
+	{
+		height: 100%;
+	}
+	#sidebar-wrapper
+	{
+		position: static;
+		height: 100%;
+	}
+	#main-wrapper
+	{ 
+		/*padding-top: 0px;*/
+		height: 100%;
+		overflow-y: auto;
+		padding: 0px 0 100px 0;
+	}
+}
+.panel-heading
+{
 	margin: 0px !important;
-	// padding: 5px !important;
 	background-image: linear-gradient(to bottom, #FFF 0%, #F8F8F8 100%);
 	background-repeat: repeat-x;
 	border-bottom: 1px solid #e7e7e7;
+}
+#connected-users > a:focus, a:hover
+{
+	text-decoration: none;
+}
+#file-upload
+{
+	bottom: 0;
+	position: relative;
 }

@@ -4,13 +4,11 @@
 
 /** GEOLOCALISATION */
 var geolocationHelper = self = {
-
 	geocoder : null,
 	currentUserGeocodeResult : null,
 	currentUserAddress : null,
 	currentUserCity : null,
 	currentUserCountry : null,
-
 	reset : function () {
 		self.geocoder = null;
 		self.currentUserGeocodeResult = null;
@@ -18,14 +16,13 @@ var geolocationHelper = self = {
 		self.currentUserCity = null;
 		self.currentUserCountry = null;
 	},
-	/** Get the latitude and the longitude; */
 	success : function (position) {
+		/** Get the latitude and the longitude; */
 		var lat = position.coords.latitude;
 		var lng = position.coords.longitude;
 		self.codeLatLng(lat, lng);
 	},
 	error : function () {
-		alert("Geocoder failed");
 		console.log("Geocoder failed");
 	},
 	initialiseGeolocation : function () {
@@ -33,8 +30,6 @@ var geolocationHelper = self = {
 
 		if (navigator.geolocation)
 			navigator.geolocation.getCurrentPosition(self.success, self.error);
-
-		//console.log("géolocalisation " + navigator.geolocation ? "activée" : "désactivée");
 
 		self.geocoder = new google.maps.Geocoder();
 	},
@@ -46,7 +41,6 @@ var geolocationHelper = self = {
 		}, function (results, status) {
 			if (status == google.maps.GeocoderStatus.OK) {
 
-				console.log(results);
 				self.currentUserGeocodeResult = results;
 
 				if (results[1]) {
@@ -80,19 +74,29 @@ var geolocationHelper = self = {
 	}
 };
 
-
 /** SOCKET.IO */
 var socket = io();
 
 var isTyping = false;
 
 socket.on('refresh-connected-users', function (data) {
-	//console.log('refresh-connected-users data = ' + data);
 	$('#connected-users').empty();
-	//console.log("data: " + data);
 	var users = data.connectedUsers;
 	for (var i in users) {
-		$('#connected-users').append($('<li/>').html('<span class="glyphicon ' + users[i].status.cssClass + '"></span> ' + users[i].username + ' - ' + users[i].status.name));
+		$('#connected-users').append(
+			$('<li/>').html(
+				'<a href="#" data-toggle="dropdown" aria-expanded="true" >' +
+					'<span class="glyphicon ' + users[i].status.cssClass + '"></span>' +
+					'&nbsp;' + users[i].username + ' - ' + users[i].status.name + '&nbsp;' +
+					'<span class="caret"></span>' +
+				'</a>' +
+				'<ul class="dropdown-menu" role="menu">' +
+					'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Message privé</a></li>' +
+					'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Bloquer</a></li>' +
+					'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Envoyer un fichier</a></li>' +
+				'</ul>'
+			)
+		);
 	}
 });
 socket.on('stopped-typing', function (username) {
@@ -108,7 +112,6 @@ socket.on('user-typing', function (data) {
 });
 socket.on('message', function (data) {
 	var momentDate = moment(data.date);
-	console.log('il y a ' + momentDate.fromNow());
 	addMessage(data.username, data.message, momentDate.format(), data.location);
 });
 socket.on('disconnect', function () {
@@ -156,12 +159,10 @@ $('form').submit(function () {
 
 	return false;
 });
-
 $('#message').keydown(function (event) {
 	// 13 = ENTER, 8 = backspace
 	if (event.which == 8) {
 		var message = $('#message').val();
-		//console.log('message: ' + message);
 		if (message.length == 0) {
 			isTyping = false;
 			return;
@@ -188,7 +189,6 @@ $('#message').change(function(){
 		return;
 	}
 })
-
 $('#imagefile').bind('change', function (e) {
 	var data = e.originalEvent.target.files[0];
 	var reader = new FileReader();
@@ -255,7 +255,6 @@ var scrollToBottom = function () {
 	}, 1000);
 };
 var displayImage = function (username, base64Image) {
-	console.log("username: " + username + ", base64Image.length: " + base64Image.length);
 	$('#messages').append($('<ul>').append($('<b>').text(username), '<img src=\'' + base64Image + '\' />'));
 };
 
@@ -265,12 +264,10 @@ var displayUsersStatus = function(data) {
 	usersStatus = data;
 	for (var i in usersStatus) {
 		var obj = usersStatus[i];
-		console.log('obj.id:' + obj.id);
 		$('#users-status').append('<li><a href="#" id="' + obj.id + '" onclick="changeUserStatus(' + i + ');"><span class="glyphicon ' + obj.cssClass + '" aria-hidden="true"></span>&nbsp;' + obj.name + '</a></li>');
 	}
 };
 var changeUserStatus = function (index) {
-	
 	var obj = usersStatus[index];
 	
 	// on supprime la classe "selected" de tous les éléments de type a possédant la classe selected
@@ -284,7 +281,6 @@ var changeUserStatus = function (index) {
 		username : USERNAME,
 		status : obj.id,
 		geolocation : {
-			//geocodeResult: geolocationHelper.currentUserGeocodeResult,
 			address: geolocationHelper.currentUserAddress,
 			country: geolocationHelper.currentUserCountry,
 			city: geolocationHelper.currentUserCity
@@ -306,4 +302,7 @@ $(document).ready(function () {
 	request.fail(function () {
 		alert('Error occurred!');
 	});
+	
+	$(":file").filestyle();
+	$('#uploadInfo').hide();
 });

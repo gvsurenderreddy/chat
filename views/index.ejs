@@ -65,12 +65,27 @@
 		<div id="wrapper">
 		
 			<!-- sidebar-wrapper -->
-			<div id="sidebar-wrapper" class="col-md-2">
+			<div id="sidebar-wrapper" class="col-md-3">
 				<div id="sidebar">
 					<h5 class="panel-heading">
 						<span class="glyphicon glyphicon-user" aria-hidden="true"></span> Connected Users
 					</h5>
-					<ul id="connected-users" class="nav"></ul>
+					<ul id="connected-users" class="nav list-group">
+						<!-- test -->
+						<li>
+							<a href="#" data-toggle="dropdown" aria-expanded="true" >
+								<span class="glyphicon glyphicon-user"></span>
+								&nbsp;User 1 - Available&nbsp;
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu" role="menu">
+								<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Message privé</a></li>
+								<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Bloquer</a></li>
+								<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Envoyer un fichier</a></li>
+							</ul>
+						</li>
+						<!-- /test -->
+					</ul>
 				</div>
 			</div>
 			<!-- /sidebar-wrapper -->
@@ -84,18 +99,43 @@
 			<!-- /main-wrapper -->
 			
 			<!-- sidebar-wrapper -->
-			<div id="sidebar-wrapper" class="col-md-4">
+			<div id="sidebar-wrapper" class="col-md-3">
 				<div id="sidebar">
 					<h5 class="panel-heading">
 						<span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>&nbsp;&nbsp;Shared files
 					</h5>
-					<ul id="shared-files" class="nav list-group">
-						<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 1.xls - User 1 - 105KB</a></li>
-						<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 2.doc - User 2 - 135KB</a></li>
-						<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 3.exe - User 3 - 8.5MB</a></li>
-						<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 4.txt - User 4 - 15KB</a></li>
-						<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 5.pdf - User 5 - 1.5MB</a></li>
-					</ul>
+					<div>
+						<ul id="shared-files" class="nav list-group">
+							<!--test-->
+							<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 1.xls - User 1 - 105KB</a></li>
+							<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 2.doc - User 2 - 135KB</a></li>
+							<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 3.exe - User 3 - 8.5MB</a></li>
+							<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 4.txt - User 4 - 15KB</a></li>
+							<li><a href="#"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> File 5.pdf - User 5 - 1.5MB</a></li>
+							<!--/test-->
+						</ul>
+					</div>
+					<div id="file-upload">
+						<input type="file" id="fileBox">
+						<button class="btn btn-default" type="button" id="upload-button">Upload !</button>
+					</div>
+					<div id="upload-info">
+						<span id="nameArea"></span>
+						<div class="progress">
+							<div class="progress-bar" role="progressbar" aria-valuenow="5" aria-valuemin="0" aria-valuemax="100">0%</div>
+						</div>
+						<p>
+							<span id="rate">0</span>Mo/s - <span id="uploaded">0</span>Mo / <span id="size">0</span>Mo
+						</p>
+						<div>
+							<span>
+								<button id='pause-upload' type='button' class='btn btn-default'>Pause</button>
+								<button id='resume-upload' type='button' class='btn btn-default'>Resume</button>
+								<button id='cancel-upload' type='button' class='btn btn-default'>Cancel</button>
+							</span>
+						</div>
+					</div>
+					<div id="alert-area" class="alert alert-info"></div>
 				</div>
 			</div>
 			<!-- /sidebar-wrapper -->
@@ -103,13 +143,19 @@
 		</div>
 		<!-- /wrapper -->
 
-		<script>var USERNAME = "<%= username %>";</script>
+		<script>
+			var USERNAME = "<%= username %>";
+			var BLOCK_SIZE = <%= blockSize %>;
+		</script>
+		
 		<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script> 
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/bootstrap/js/bootstrap.min.js"></script>
+		<script src="/js/bootstrap-filestyle.js"></script>
 		<script src="/js/string.format.js"></script>
 		<script src="/js/chat.js"></script>
+		<script src="/js/chat-file-upload.js"></script>
 </body>
 </html>
 </html>

@@ -36,5 +36,11 @@ module.exports = {
 			id : 'userstatus-afk',
 			name : 'Away from keyboard',
 			cssClass : 'glyphicon-briefcase'
-		}]
+		}
+	],
+	fileUpload : {
+		dataBufferLength : 512 * 1024,
+		blockSize : 256 * 1024,
+		tempDir: 'temp/'
+	}
 };
