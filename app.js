@@ -1,4 +1,4 @@
-var config = require('./config'); // cahrge la config depuis le fichier ./config.js
+var config = require('./lib/config'); // cahrge la config depuis le fichier ./config.js
 var app = require('express')();
 var session = require('express-session');
 var cookie = require('cookie');
@@ -10,12 +10,13 @@ var mongoStore = new MongoStore({
 var assert = require('assert'); // tests sur des variables dont une valeur est attendue.
 var ejs = require('ejs'); // templating ejs
 var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
-var chatDbService = require('./chat-db-service'); // charge le service de base de données du chat
+var chatDbService = require('./lib/chat-db-service'); // charge le service de base de données du chat
 var URLRegExp = require('url-regexp');
 var moment = require('moment'); // utilitaire de formatage des dates
-var usersStatusHelper = require('./users-status-helper');
+var usersStatusHelper = require('./lib/users-status-helper');
 var fs = require('fs');
 var util = require('util');
+var connectedUsersHelper = require('./lib/connected-users-helper'); // gestionnaire d'utilisateurs connectés
 
 app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
 app.set('view engine', 'ejs'); // moteur de template = ejs
@@ -37,9 +38,11 @@ app.use(session({
 var DATA_BUFFER_LENGTH = config.fileUpload.dataBufferLength;
 var BLOCK_SIZE = config.fileUpload.blockSize;
 var ONE_MB = 1024 * 1024;
+var FILE_UPLOAD_TEMP_DIR = config.fileUpload.tempDir;
+var FILE_UPLOAD_SHARE_DIR = config.fileUpload.shareDir;
 
 // Initialise REST routes
-require('./app-routes')(app);
+require('./lib/app-routes')(app);
 
 /** WebSocket */
 var server = require('http').Server(app).listen(config.port);
@@ -62,10 +65,8 @@ io.use(function ioSession(socket, next) {
 	next();
 });
 
-// on récupère le gestionnaire d'utilisateurs connectés
-var connectedUsersHelper = require('./connected-users-helper');
+// variable contenant les fichiers uploadés.
 var files = {};
-
 io.sockets.on('connection', function (socket) {
 
 	// L'utilisateur se connecte au chat, on l'annonce :
@@ -112,7 +113,7 @@ io.sockets.on('connection', function (socket) {
 		});
 	});
 
-	// New message from client = "write" event
+	/** Manage user messages & statuses */
 	socket.on('message', function (messageData) {
 
 		console.dir(messageData);
@@ -167,8 +168,8 @@ io.sockets.on('connection', function (socket) {
 			socket.broadcast.emit('user-image', session.username, ent.encode(base64Image));
 		});
 	});
-	/** Un utilisateur vient de mettre à jour son statut. */
 	socket.on('user-status', function(data) {
+		/** Un utilisateur vient de mettre à jour son statut. */
 		
 		// un peu de log
 		console.dir(data);
@@ -213,16 +214,16 @@ io.sockets.on('connection', function (socket) {
 
 		var place = 0;
 		try {
-			var stat = fs.statSync(config.fileUpload.tempDir + name);
+			var stat = fs.statSync(__dirname + '/../' + FILE_UPLOAD_TEMP_DIR + name);
 			
 			socket.emit('file-exists', {
 				'text' : "The File " + name + "already exists on the server."
 			});
 			
-			// if (stat.isFile()) {
-				// files[name]['downloaded'] = stat.size;
-				// place = stat.size / BLOCK_SIZE;
-			// }
+			if (stat.isFile()) {
+				files[name]['downloaded'] = stat.size;
+				place = stat.size / BLOCK_SIZE;
+			}
 			
 		} catch (er) {
 			// it's a new file
