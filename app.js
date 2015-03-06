@@ -10,12 +10,12 @@ var mongoStore = new MongoStore({
 var assert = require('assert'); // tests sur des variables dont une valeur est attendue.
 var ejs = require('ejs'); // templating ejs
 var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
-var chatDbService = require('./lib/chat-db-service'); // charge le service de base de données du chat
 var URLRegExp = require('url-regexp');
 var moment = require('moment'); // utilitaire de formatage des dates
-var usersStatusHelper = require('./lib/users-status-helper');
 var fs = require('fs');
 var util = require('util');
+var chatDbService = require('./lib/chat-db-service'); // charge le service de base de données du chat
+var usersStatusHelper = require('./lib/users-status-helper');
 var connectedUsersHelper = require('./lib/connected-users-helper'); // gestionnaire d'utilisateurs connectés
 
 app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
@@ -97,7 +97,6 @@ io.sockets.on('connection', function (socket) {
 		console.log("connectedUsersHelper.getLite() = " + JSON.stringify(connectedUsersHelper.getLite()));
 	});
 
-	// When user leaves
 	socket.on('disconnect', function () {
 
 		// suppression de l'utilisateur dans le tableau
@@ -201,11 +200,21 @@ io.sockets.on('connection', function (socket) {
 
 		console.log("username: " + data.username + ", user-status: " + data.status);
 	});
-
+	/** /Manage user messages & statuses */
+	
 	/** Manage uploads */
 	socket.on('upload-start', function (data) {
 
 		var name = data['name'];
+		
+		// vérifier que files[name] n'existe pas déjà:
+		if (!!files[name]) {
+			socket.emit('file-exists', {
+				'text' : "The File " + name + "already exists on the server."
+			});
+			return;
+		}
+		
 		files[name] = {
 			fileSize : data['size'],
 			data : '',
@@ -269,8 +278,9 @@ io.sockets.on('connection', function (socket) {
 
 		files[name]['downloaded'] += data['data'].length;
 		files[name]['data'] += data['data'];
-
-		if (files[name]['downloaded'] == files[name]['fileSize']) { // the file is fully loaded
+		
+		// The file is fully loaded
+		if (files[name]['downloaded'] == files[name]['fileSize']) { 
 			console.log('[' + name + '] file fully loaded');
 			fs.write(files[name]['handler'], files[name]['data'], null, 'Binary', function (err, written) {
 				if (err) {
@@ -310,6 +320,19 @@ io.sockets.on('connection', function (socket) {
 							};
 							console.dir(obj);
 							socket.emit('upload-done', obj);
+							
+							// on envoie la nouvelle liste de fichiers (à tout le monde)
+							fs.readdir(FILE_UPLOAD_SHARE_DIR, function (err, files) {
+								if(err){
+									console.log("Impossible de lire le répertoire... " + err);
+								}else{
+									console.dir(files);
+									io.sockets.emit('shared-files', {
+										'files' : files,
+										'directory' : config.fileUpload.shareDir
+									});
+								}
+							});
 						}
 					});
 				}
@@ -409,4 +432,22 @@ io.sockets.on('connection', function (socket) {
 			}
 		});
 	});
+	socket.on('get-shared-files', function() {
+		/** Asynchronous readdir(3).
+		Reads the contents of a directory. The callback gets two arguments (err, files)
+		where files is an array of the names of the files in the directory excluding '.' and '..'.  */
+		// on envoie la nouvelle liste de fichiers (à tout le monde)
+		fs.readdir(FILE_UPLOAD_SHARE_DIR, function (err, files) {
+			if(err){
+				console.log("Impossible de lire le répertoire... " + err);
+			}else{
+				//console.dir(files);
+				io.sockets.emit('shared-files', {
+					'files' : files,
+					'directory' : config.fileUpload.shareDir
+				});
+			}
+		});	
+	})
+	/** /Manage uploads */
 });
