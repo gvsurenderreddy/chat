@@ -38,8 +38,15 @@ app.use(session({
 var DATA_BUFFER_LENGTH = config.fileUpload.dataBufferLength;
 var BLOCK_SIZE = config.fileUpload.blockSize;
 var ONE_MB = 1024 * 1024;
-var FILE_UPLOAD_TEMP_DIR = config.fileUpload.tempDir;
-var FILE_UPLOAD_SHARE_DIR = config.fileUpload.shareDir;
+var FILE_UPLOAD_TEMP_DIR = __dirname + '/' + config.fileUpload.tempDir; // temp/
+var FILE_UPLOAD_SHARE_DIR = __dirname + '/' + config.fileUpload.shareDir; // share/
+var FILE_UPLOAD_TEMP_EXT = config.fileUpload.tempExtension; // .part
+
+console.dir({
+	'FILE_UPLOAD_TEMP_DIR' : FILE_UPLOAD_TEMP_DIR,
+	'FILE_UPLOAD_SHARE_DIR' : FILE_UPLOAD_SHARE_DIR,
+	'FILE_UPLOAD_TEMP_EXT' : FILE_UPLOAD_TEMP_EXT
+});
 
 // Initialise REST routes
 require('./lib/app-routes')(app);
@@ -135,7 +142,7 @@ io.sockets.on('connection', function (socket) {
 			var messageObject = {
 				username : session.username,
 				message : messageData.msg,
-				location: messageData.location,
+				location : messageData.location,
 				date : Date.now()
 			};
 			chatDbService.insertMessage(messageObject, function () {
@@ -168,29 +175,30 @@ io.sockets.on('connection', function (socket) {
 			socket.broadcast.emit('user-image', session.username, ent.encode(base64Image));
 		});
 	});
-	socket.on('user-status', function(data) {
+	socket.on('user-status', function (data) {
 		/** Un utilisateur vient de mettre à jour son statut. */
-		
+
 		// un peu de log
 		console.dir(data);
-		
+
 		// verification :
 		assert.equal(typeof(data), 'object', "data mustbe an object.");
-		
+
 		// récupération du nouveau statut à partir de l'id
 		var statusObj = usersStatusHelper.get(data.status);
-		
+
 		// on quitte si le status == null
-		if (statusObj == null) return;
-		
+		if (statusObj == null)
+			return;
+
 		// mise à jour du status de l'utilisateur via le sous-module connected-users-helper :
 		connectedUsersHelper.updateStatus(socket.sessionID, statusObj);
-		
+
 		// on broadcaste le message de refresh de la liste des utilisateurs :
 		io.sockets.emit('refresh-connected-users', {
 			"connectedUsers" : connectedUsersHelper.getLite()
 		});
-		
+
 		console.log("username: " + data.username + ", user-status: " + data.status);
 	});
 
@@ -198,9 +206,6 @@ io.sockets.on('connection', function (socket) {
 	socket.on('upload-start', function (data) {
 
 		var name = data['name'];
-
-		console.log('starting upload for file: ' + name + ' size: ' + data['size']);
-
 		files[name] = {
 			fileSize : data['size'],
 			data : '',
@@ -209,25 +214,37 @@ io.sockets.on('connection', function (socket) {
 			lastDataReceivedDate : new Date(),
 			paused : false,
 			pauseData : null,
-			cancelled : false
+			cancelled : false,
+			tempName : name + FILE_UPLOAD_TEMP_EXT
 		};
+		console.log('0. demarrage upload du fichier : ' + name);
 
 		var place = 0;
 		try {
-			var stat = fs.statSync(__dirname + '/../' + FILE_UPLOAD_TEMP_DIR + name);
-			
+			console.log('1. Vérif de l\'existence du fichier ' + name);
+
+			// 1. on vérifie que le fichier n'existe pas déjà dans le répertoire de partage.
+			var stat = fs.statSync(FILE_UPLOAD_TEMP_DIR + name);
+
+			console.log('1.B Le fichier existe déjà !');
+
 			socket.emit('file-exists', {
 				'text' : "The File " + name + "already exists on the server."
 			});
-			
-			if (stat.isFile()) {
-				files[name]['downloaded'] = stat.size;
-				place = stat.size / BLOCK_SIZE;
-			}
-			
+
+			// if (stat.isFile()) {
+			// files[name]['downloaded'] = stat.size;
+			// place = stat.size / BLOCK_SIZE;
+			// }
+
 		} catch (er) {
+
 			// it's a new file
-			fs.open('Temp/' + name + ".part", "a", 0755, function (err, fd) {
+			var tempFileName = FILE_UPLOAD_TEMP_DIR + name + FILE_UPLOAD_TEMP_EXT;
+
+			console.log('2. Le fichier n\'existe pas, on va crééer le fichier temporaire :' + tempFileName);
+
+			fs.open(tempFileName, "a", 0755, function (err, fd) {
 				if (err) {
 					console.dir(err);
 				} else {
@@ -256,30 +273,46 @@ io.sockets.on('connection', function (socket) {
 		if (files[name]['downloaded'] == files[name]['fileSize']) { // the file is fully loaded
 			console.log('[' + name + '] file fully loaded');
 			fs.write(files[name]['handler'], files[name]['data'], null, 'Binary', function (err, written) {
-				var now = new Date();
-				var span = (now - files[name]['startDate'])
-				var rate = (files[name]['downloaded'] * 1000) / span;
+				if (err) {
+					console.dir(err);
+				} else {
+					// 1. fermer le fichier !
+					fs.close(files[name]['handler'], function (err2) {
+						if (err2)
+							console.log('Exception ! ', err2);
+						else
+							console.log('OK');
+					});
 
-				// on envoie un message de transfert réussi
-				var obj = {
-					'name' : name,
-					'size' : Math.round(files[name]['fileSize'] / (ONE_MB) * 100) / 100, // MB
-					'downloaded' : Math.round(files[name]['downloaded'] / (ONE_MB) * 100) / 100, // MB
-					'startDate' : files[name]['startDate'],
-					'finishDate' : now,
-					'elapsedTime' : span,
-					'rate' : (rate / (ONE_MB)).toFixed(3) // MB/s
-				};
-				console.dir(obj);
-				socket.emit('done', obj);
+					// 2. déplacer le fichier dans le répertoire de partage.
+					var oldPath = FILE_UPLOAD_TEMP_DIR + name + FILE_UPLOAD_TEMP_EXT;
+					var newPath = FILE_UPLOAD_SHARE_DIR + name;
+					
+					console.log('Déplacement du fichier [' + oldPath + '] -> [' + newPath + ']...');
+					
+					fs.rename(oldPath, newPath, function (err3) {
+						if (err3) {
+							console.log('Erreur lors du déplacement du fichier: ' + err3);
+						} else {
+							var now = new Date();
+							var span = (now - files[name]['startDate'])
+							var rate = (files[name]['downloaded'] * 1000) / span;
 
-				// fermer le fichier !
-				fs.close(files[name]['handler'], function (err) {
-					if (err)
-						console.log('Exception ! ', err);
-					else
-						console.log('OK');
-				});
+							// on envoie un message de transfert réussi
+							var obj = {
+								'name' : name,
+								'size' : Math.round(files[name]['fileSize'] / (ONE_MB) * 100) / 100, // MB
+								'downloaded' : Math.round(files[name]['downloaded'] / (ONE_MB) * 100) / 100, // MB
+								'startDate' : files[name]['startDate'],
+								'finishDate' : now,
+								'elapsedTime' : span,
+								'rate' : (rate / (ONE_MB)).toFixed(3) // MB/s
+							};
+							console.dir(obj);
+							socket.emit('upload-done', obj);
+						}
+					});
+				}
 			});
 		} else if (files[name]['data'].length > DATA_BUFFER_LENGTH) {
 
@@ -351,15 +384,16 @@ io.sockets.on('connection', function (socket) {
 	socket.on('upload-cancel', function (data) {
 		console.log('\'cancel\' event received!');
 		var name = data['name'];
-		
+
 		files[name]['cancelled'] = true;
 
-		// supprimer le fichier téléchargé...
-		fs.unlink('temp/' + name, function (err) {
+		// On supprime le fichier téléchargé
+		var tempFilename = FILE_UPLOAD_TEMP_DIR + name + FILE_UPLOAD_TEMP_EXT;
+		fs.unlink(tempFilename, function (err) {
 			if (err)
 				console.log("Error occurred !", err);
 			else {
-				console.log('successfully deleted /temp/' + name);
+				console.log('successfully deleted ' + tempFilename);
 
 				// on tente de fermer le fichier ...
 				try {
@@ -369,7 +403,7 @@ io.sockets.on('connection', function (socket) {
 						else
 							console.log('OK');
 					});
-				}catch(e){
+				} catch (e) {
 					console.log('error when closing the file handler: ' + e);
 				}
 			}

@@ -18,7 +18,6 @@ function fileChosen(evt) {
 }
 
 
-
 socket.on('moreData', function (data) {
 	//La variable BLOCK_SIZE est définie dans app.js et passée en param au template ejs.
 	updateBar(data['percent'], data['rate'], data['downloaded']);
@@ -33,8 +32,7 @@ socket.on('moreData', function (data) {
 		alert('slice method doesn\'t exist !');
 	fileReader.readAsBinaryString(newFile);
 });
-socket.on('done', function (data) {
-	//$('#upload-area').show();
+socket.on('upload-done', function (data) {
 	$('#upload-info').hide();
 	$('#alert-area').show();
 	$('#alert-area').html($('<p/>').html("<strong>Nom du fichier:</strong> " + data.name));
