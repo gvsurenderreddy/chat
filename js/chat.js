@@ -78,6 +78,7 @@ var geolocationHelper = self = {
 var socket = io();
 
 var isTyping = false;
+var notifications = 0;
 
 socket.on('refresh-connected-users', function (data) {
 	$('#connected-users').empty();
@@ -111,8 +112,9 @@ socket.on('user-typing', function (data) {
 	}
 });
 socket.on('message', function (data) {
+	if (notifications > 0) document.title = '(' + notifications + ') Node.js chat';
 	var momentDate = moment(data.date);
-	addMessage(data.username, data.message, momentDate.format(), data.location);
+	addMessage(data.username, data.message, momentDate.format("DD/MM/YYYY HH:mm"), data.location);
 });
 socket.on('disconnect', function () {
 	displayMessage('<i class="fa fa-times-circle"></i> Vous avez été déconnecté du serveur de chat.');

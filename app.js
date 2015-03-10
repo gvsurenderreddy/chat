@@ -42,12 +42,6 @@ var FILE_UPLOAD_TEMP_DIR = __dirname + '/' + config.fileUpload.tempDir; // temp/
 var FILE_UPLOAD_SHARE_DIR = __dirname + '/' + config.fileUpload.shareDir; // share/
 var FILE_UPLOAD_TEMP_EXT = config.fileUpload.tempExtension; // .part
 
-console.dir({
-	'FILE_UPLOAD_TEMP_DIR' : FILE_UPLOAD_TEMP_DIR,
-	'FILE_UPLOAD_SHARE_DIR' : FILE_UPLOAD_SHARE_DIR,
-	'FILE_UPLOAD_TEMP_EXT' : FILE_UPLOAD_TEMP_EXT
-});
-
 // Initialise REST routes
 require('./lib/app-routes')(app);
 

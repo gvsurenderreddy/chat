@@ -15,17 +15,22 @@
 		"font-awesome" : "latest",
 		"moment" : "latest",
 		"mongodb" : "~1.4.0",
-		"mongoose" : "^3.8.21",
 		"socket.io" : "~1.0.0",
 		"url-regexp" : "~1.0.2",
-		"user-management" : "~1.0.0"
+		"user-management" : "~1.0.0",
+		"bootstrap-datepicker" : "~1.4.0"
 	},
 	"devDependencies" : {
-		"grunt" : "~0.4.5",
-		"grunt-contrib-jshint" : "~0.10.0",
+		"grunt" : "^0.4.5",
+		"grunt-contrib-concat" : "^0.5.1",
 		"grunt-contrib-nodeunit" : "~0.4.1",
-		"grunt-contrib-uglify" : "~0.5.0"
+		"grunt-contrib-uglify" : "^0.8.0",
+		"grunt-contrib-watch" : "^0.6.1"
 	},
-	"author" : "Quentin <kwentinn@gmail.com",
-	"description" : "Une messagerie temps réel avec Node.js et socket.io et MongoDb"
+	"repository" : {
+		"type" : "git",
+		"url" : "https://github.com/kwentinn/chat.git"
+	},
+	"author" : "Quentin V <kwentinn@gmail.com>",
+	"description" : "A chat under node.js, socket.io and mongodb"
 }

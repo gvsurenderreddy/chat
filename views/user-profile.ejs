@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<script src="/moment/moment.js"></script>
+		<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link href="/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+		<link href="/css/chat.css" rel="stylesheet">
+		<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+		<link href="/bootstrap-datepicker/css/bootstrap-datepicker3.min.css" rel="stylesheet">
+		<title>Node.js chat - User profile</title>
+	</head>
+	<body>
+
+		<!-- header -->
+		<div id="header" class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-header">
+				<button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+					<i class="icon-reorder"></i>
+				</button>
+				<a class="navbar-brand" href="/">Chat.js.io</a>
+			</div>
+			<nav class="collapse navbar-collapse">
+				<ul class="nav navbar-nav pull-right">
+					<li class="dropdown">
+						<a href="#" id="nbAcctDD" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-user"></i><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <%= username %>&nbsp;<b class="caret"></b>
+							<i class="icon-sort-down"></i>
+						</a>
+						<ul class="dropdown-menu pull-right">
+							<li><a href="/logout">D&eacute;connexion</a></li>
+						</ul>
+					</li>
+				</ul>
+			</nav>
+		</div>
+		<!-- /header -->
+
+		<div class="col-md-3"></div>
+		<div class="col-md-6">
+		
+		<h3>Profil de l'utilisateur : <strong><%= username %></strong></h3>
+		
+		<form>
+			<div class="form-group">
+				<label for="lastname">Nom</label>
+				<input class="form-control" id="lastname">
+			</div>
+			<div class="form-group">
+				<label for="firstname">Prénom</label>
+				<input class="form-control" id="firstname">
+			</div>
+			<div class="form-group">
+				<label for="date-of-birth">Date de naissance</label>
+				<input id="date-of-birth" type="text" type="text" class="form-control">
+			</div>
+			<div class="form-group">
+				<label for="email">Adresse e-mail</label>
+				<input type="email" class="form-control" id="email">
+			</div>
+			<div class="form-group">
+				<label for="country">Pays</label>
+				<input class="form-control" id="country">
+			</div>
+			<div class="form-group">
+				<label for="avatar-image">Avatar</label>
+				<input type="file" id="avatar-image">
+			</div>
+			<div class="checkbox">
+				<label>
+					<input type="checkbox"> Check me out
+				</label>
+			</div>
+			<button type="submit" class="btn btn-default">Enregistrer</button>
+			<button type="submit" class="btn btn-default">Annuler</button>
+		</form>
+		
+		
+		</div>
+		<div class="col-md-3"></div>
+
+		<script>
+			var USERNAME = "<%= username %>";
+		</script>
+		
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="/bootstrap/js/bootstrap.min.js"></script>
+		<script src="/js/bootstrap-filestyle.js"></script>
+		<script src="/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+		<script src="/bootstrap-datepicker/locales/bootstrap-datepicker.fr.min.js"></script>
+		<script src="/js/string.format.js"></script>
+		<script src="/js/user-profile.js"></script>
+</body>
+</html>
+</html>
