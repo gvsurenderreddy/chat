@@ -38,49 +38,46 @@
 
 		<div class="col-md-3"></div>
 		<div class="col-md-6">
-		
-		<h3>Profil de l'utilisateur : <strong><%= username %></strong></h3>
-		
-		<form>
-			<div class="form-group">
-				<label for="lastname">Nom</label>
-				<input class="form-control" id="lastname">
-			</div>
-			<div class="form-group">
-				<label for="firstname">Prénom</label>
-				<input class="form-control" id="firstname">
-			</div>
-			<div class="form-group">
-				<label for="date-of-birth">Date de naissance</label>
-				<input id="date-of-birth" type="text" type="text" class="form-control">
-			</div>
-			<div class="form-group">
-				<label for="email">Adresse e-mail</label>
-				<input type="email" class="form-control" id="email">
-			</div>
-			<div class="form-group">
-				<label for="country">Pays</label>
-				<input class="form-control" id="country">
-			</div>
-			<div class="form-group">
-				<label for="avatar-image">Avatar</label>
-				<input type="file" id="avatar-image">
-			</div>
-			<div class="checkbox">
-				<label>
-					<input type="checkbox"> Check me out
-				</label>
-			</div>
-			<button type="submit" class="btn btn-default">Enregistrer</button>
-			<button type="submit" class="btn btn-default">Annuler</button>
-		</form>
-		
-		
+			<h3>Profil de l'utilisateur : <strong><%= username %></strong></h3>
+			<form action="/userProfile" method="post">
+				<div class="form-group">
+					<label for="lastname">Nom</label>
+					<input class="form-control" id="lastname" name="lastname">
+				</div>
+				<div class="form-group">
+					<label for="firstname">Prénom</label>
+					<input class="form-control" id="firstname" name="firstname">
+				</div>
+				<div class="form-group">
+					<label for="date-of-birth">Date de naissance</label>
+					<input id="date-of-birth" type="text" type="text" class="form-control" name="date-of-birth">
+				</div>
+				<div class="form-group">
+					<label for="email">Adresse e-mail</label>
+					<input type="email" class="form-control" id="email" name="email">
+				</div>
+				<div class="form-group">
+					<label for="country">Pays</label>
+					<input class="form-control" id="country" name="country">
+				</div>
+				<div class="form-group">
+					<label for="avatar-image">Avatar</label>
+					<input type="file" id="avatar-image" name="avatar-image">
+				</div>
+				<!-- <div class="checkbox">
+					<label>
+						<input type="checkbox"> Check me out
+					</label>
+				</div> -->
+				<button type="submit" class="btn btn-default" id="btn-save-profile">Enregistrer</button>
+				<!-- <button class="btn btn-default">Annuler</button> -->
+			</form>
 		</div>
 		<div class="col-md-3"></div>
 
 		<script>
-			var USERNAME = "<%= username %>";
+			var username = "<%= username %>";
+			var userProfile = <%- userProfile %>; //le tiret permet d'éviter d'échaper les quotes.
 		</script>
 		
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
