@@ -100,6 +100,8 @@ a.selected
 	background-color: #E7E7E7;
 	color: #555 !important;
 }
+
+
 /** La taille de l'écran est AU MAXIMUM de 992px. */
 @media (max-width: 992px)
 {
@@ -107,7 +109,8 @@ a.selected
 	#main-wrapper
 	{ 
 		/*padding-top: 0px;*/
-		/*height: 100%;*/
+		min-height: 100px;
+		max-height: 400px;
 		overflow-y: auto;
 		/*padding: 0px 0 100px 0;*/
 		border-top: 1px solid #E7E7E7;
@@ -115,6 +118,7 @@ a.selected
 	}
 	#sidebar-wrapper
 	{
+		min-height: 150px;
 		position: static;
 		height: auto;
 		border-right: 0;
@@ -122,7 +126,13 @@ a.selected
 	}
 	#wrapper
 	{
-		padding-bottom: 51px;
+		/* background-color: red; */
+		padding-bottom: -100px;
+		/*overflow-y: auto;*/
+	}
+	#connected-users
+	{
+		min-height: 150px;
 	}
 }
 /** La taille de l'écran est AU MINIMUM de 992px. */

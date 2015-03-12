@@ -3,6 +3,7 @@ module.exports = function (grunt) {
 	// variables privées
 	var jsSrc = [
 		'js/bootstrap-filestyle.js',
+		'js/geolocation-helper.js',
 		'js/chat.js',
 		'js/chat-file-upload.js',
 		'js/string.format.js'

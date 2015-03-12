@@ -1,4 +1,8 @@
 
+var displayAlert = function(css, message) {
+	$('#alert-area').html('<div class="alert alert-' + css + ' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><strong>OK!</strong>&nbsp;' + message + '</div>');
+}
+
 $('#btn-save-profile').click(function (e) {
 
 	var firstname = $('#firstname').val();
@@ -21,8 +25,20 @@ $('#btn-save-profile').click(function (e) {
 			dataType : 'json',
 			data : formData,
 			type : 'POST',
+			
+			/** success Type: Function( Anything data, String textStatus, jqXHR jqXHR ) */
 			success : function (data) {
 				console.log(data);
+				if (data.error == null) {
+					displayAlert('success', data.message);
+				} else {
+					displayAlert('danger', data.error);
+				}
+			},
+			
+			/** error Type: Function( jqXHR jqXHR, String textStatus, String errorThrown ) */
+			error : function (jqXHR, textStatus, errorThrown) {
+				displayAlert('danger', textStatus);
 			}
 		});
 	}
@@ -31,6 +47,7 @@ $('#btn-save-profile').click(function (e) {
 
 });
 
+
 var imageData = null;
 $('#avatar-image').bind('change', function (e) {
 	var data = e.originalEvent.target.files[0];
@@ -38,21 +55,19 @@ $('#avatar-image').bind('change', function (e) {
 	reader.onload = function (evt) {
 		imageData = evt.target.result;
 		//console.dir(imageData);
-		//displayImage(USERNAME, evt.target.result);
-		//socket.emit('user-image', evt.target.result);
 	};
 	reader.readAsDataURL(data);
 });
-function getBase64Image(imgElem) {
-	// imgElem must be on the same server otherwise a cross-origin error will be thrown "SECURITY_ERR: DOM Exception 18"
-	var canvas = document.createElement("canvas");
-	canvas.width = imgElem.clientWidth;
-	canvas.height = imgElem.clientHeight;
-	var ctx = canvas.getContext("2d");
-	ctx.drawImage(imgElem, 0, 0);
-	var dataURL = canvas.toDataURL("image/png");
-	return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-}
+// function getBase64Image(imgElem) {
+	// // imgElem must be on the same server otherwise a cross-origin error will be thrown "SECURITY_ERR: DOM Exception 18"
+	// var canvas = document.createElement("canvas");
+	// canvas.width = imgElem.clientWidth;
+	// canvas.height = imgElem.clientHeight;
+	// var ctx = canvas.getContext("2d");
+	// ctx.drawImage(imgElem, 0, 0);
+	// var dataURL = canvas.toDataURL("image/png");
+	// return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+// }
 
 /** Code exécuté lorsque le document est prêt */
 $(document).ready(function () {
@@ -71,7 +86,10 @@ $(document).ready(function () {
 	if (!!userProfile.lastname)
 		$('#lastname').val(userProfile.lastname);
 	if (!!userProfile['date-of-birth'])
-		$('#date-of-birth').datepicker('update', userProfile['date-of-birth']);
+	{
+		var dateOfBirth = moment(userProfile['date-of-birth']);
+		$('#date-of-birth').datepicker('update', dateOfBirth);
+	}
 	if (!!userProfile.country)
 		$('#country').val(userProfile.country);
 	if (!!userProfile.email)
