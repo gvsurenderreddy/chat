@@ -2,9 +2,6 @@
 /** chat.js must be included before this file ! */
 /************************************************/
 
-console.log("socket: " + !!socket);
-console.log("displayMessage: " + !!displayMessage);
-
 var fileReader;
 var name;
 var selectedFile;
@@ -149,12 +146,12 @@ $(document).ready(function () {
 
 	if (window.File && window.FileReader) {
 		
-		// displayMessage defined in chat.js
-		displayMessage("<strong>Good news:</strong> Your browser supports the <strong>file API</strong>.");
+		// displayInfo defined in chat.js
+		displayInfo("<strong>Good news:</strong> Your browser supports the <strong>file API</strong>.");
 
 		var fr = new FileReader();
 		if (!fr.readAsBinaryString) {
-			displayMessage('The fileReader.readAsBinaryString method is unavailable! Please upgrade your browser or use another one.');
+			displayInfo('The fileReader.readAsBinaryString method is unavailable! Please upgrade your browser or use another one.');
 			$('#file-upload').hide();
 		}else{
 			
@@ -162,7 +159,7 @@ $(document).ready(function () {
 		fr = null;
 	} else {
 		$('#uploadArea').hide();
-		displayMessage("Your browser doesn't support the file API. Please update your browser.");
+		displayInfo("Your browser doesn't support the file API. Please update your browser.");
 	}
 	
 	socket.emit('get-shared-files');

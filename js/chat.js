@@ -18,17 +18,15 @@ socket.on('refresh-connected-users', function (data) {
 		$('#connected-users').append(
 			$('<li/>').html(
 				'<a href="#" data-toggle="dropdown" aria-expanded="true" >' +
-					'<span class="glyphicon ' + users[i].status.cssClass + '"></span>' +
-					'&nbsp;' + users[i].username + ' - ' + users[i].status.name + '&nbsp;' +
-					'<span class="caret"></span>' +
+				'<span class="glyphicon ' + users[i].status.cssClass + '"></span>' +
+				'&nbsp;' + users[i].username + ' - ' + users[i].status.name + '&nbsp;' +
+				'<span class="caret"></span>' +
 				'</a>' +
 				'<ul class="dropdown-menu" role="menu">' +
-					'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Message privé</a></li>' +
-					'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Bloquer</a></li>' +
-					'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Envoyer un fichier</a></li>' +
-				'</ul>'
-			)
-		);
+				'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Message privé</a></li>' +
+				'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Bloquer</a></li>' +
+				'<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Envoyer un fichier</a></li>' +
+				'</ul>'));
 	}
 });
 socket.on('stopped-typing', function (username) {
@@ -43,25 +41,26 @@ socket.on('user-typing', function (data) {
 	}
 });
 socket.on('message', function (data) {
-	if (notifications > 0) document.title = '(' + notifications + ') Node.js chat';
+	if (notifications > 0)
+		document.title = '(' + notifications + ') Node.js chat';
 	var momentDate = moment(data.date);
-	addMessage(data.username, data.message, momentDate.format("DD/MM/YYYY HH:mm"), data.location);
+	addMessage(data.username, data.message, momentDate.format("DD/MM/YYYY HH:mm"), data.location, data.profilePicture);
 });
 socket.on('disconnect', function () {
-	displayMessage('<i class="fa fa-times-circle"></i> Vous avez été déconnecté du serveur de chat.');
+	displayInfo('<i class="fa fa-times-circle"></i> Vous avez été déconnecté du serveur de chat.');
 });
 socket.on('connect', function () {
-	displayMessage('<i class="fa fa-check-circle"></i> <em>Vous êtes à présent connecté au serveur de chat en tant que <strong>' + USERNAME + '</strong>.</em>');
+	displayInfo('<i class="fa fa-check-circle"></i> <em>Vous êtes à présent connecté au serveur de chat en tant que <strong>' + USERNAME + '</strong>.</em>');
 });
 socket.on('user-connected', function (data) {
-	displayMessage(data.username + ' a rejoint le Chat !');
+	displayInfo(data.username + ' a rejoint le Chat !');
 });
 socket.on('user-disconnected', function (data) {
-	displayMessage('<i class="fa fa-times-circle"></i> ' + data.username + ' a quitté la discussion.');
+	displayInfo('<i class="fa fa-times-circle"></i> ' + data.username + ' a quitté la discussion.');
 });
 socket.on('user-image', displayImage);
 socket.on('error', function (err) {
-	displayMessage('<i class="fa fa-exclamation-circle"></i> ' + (err ? err : 'An unknown error has occurred.'));
+	displayInfo('<i class="fa fa-exclamation-circle"></i> ' + (err ? err : 'An unknown error has occurred.'));
 });
 
 // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
@@ -78,9 +77,9 @@ $('form').submit(function () {
 		msg : message,
 		location : {
 			//geocodeResult: geolocationHelper.currentUserGeocodeResult,
-			address: geolocationHelper.currentUserAddress,
-			country: geolocationHelper.currentUserCountry,
-			city: geolocationHelper.currentUserCity
+			address : geolocationHelper.currentUserAddress,
+			country : geolocationHelper.currentUserCountry,
+			city : geolocationHelper.currentUserCity
 		}
 	});
 
@@ -105,8 +104,7 @@ $('#message').keydown(function (event) {
 			isTyping = false;
 			return;
 		}
-	}
-	else if (event.which != 13) {
+	} else if (event.which != 13) {
 		isTyping = true;
 		socket.emit('user-typing', {
 			"username" : USERNAME,
@@ -114,7 +112,7 @@ $('#message').keydown(function (event) {
 		});
 	}
 });
-$('#message').change(function(){
+$('#message').change(function () {
 	var message = $('#message').val();
 	if (message.length == 0 && isTyping == true) {
 		socket.emit('stopped-typing', USERNAME);
@@ -133,12 +131,12 @@ $('#imagefile').bind('change', function (e) {
 });
 
 // Ajoute un message dans la page
-var addMessage = function (username, message, date, location) {
+var addMessage = function (username, message, date, location, profilePicture) {
 	// 0: username, 1: user's avatar, 2: date, 3: message, 4: localisation
 	var html_leftAlign =
 		'<li class="left clearfix">' +
 		'<span class="chat-img pull-left">' +
-		'<img src="{1}" alt="User Avatar" class="img-circle" />' +
+		'<img src="{1}" alt="User Avatar" class="img-circle" height="50" width="50" />' +
 		'</span>' +
 		'<div class="chat-body clearfix">' +
 		'<div class="header">' +
@@ -154,7 +152,7 @@ var addMessage = function (username, message, date, location) {
 	var html_rightAlign =
 		'<li class="right clearfix">' +
 		'<span class="chat-img pull-right">' +
-		'<img src="{1}" alt="User Avatar" class="img-circle" />' +
+		'<img src="{1}" alt="User Avatar" class="img-circle" height="50" width="50" />' +
 		'</span>' +
 		'<div class="chat-body clearfix">' +
 		'<div class="header">' +
@@ -168,17 +166,19 @@ var addMessage = function (username, message, date, location) {
 		'</li>';
 
 	var html = (username == USERNAME) ? html_leftAlign : html_rightAlign;
-	var avatar = (username == USERNAME) ? "http://placehold.it/50/55C1E7/fff" : "http://placehold.it/50/FA6F57/fff";
-	html = String.format(html, username, avatar, date, message);
-	$('#messages').append(html);
+	//var avatar = (username == USERNAME) ? "http://placehold.it/50/55C1E7/fff" : "http://placehold.it/50/FA6F57/fff";
+	html = String.format(html, username, profilePicture, date, message);
 	
+	console.dir(html);
+	
+	$('#messages').append(html);
 	if (location.city != null) {
 		$('strong.primary-font:last').append('<small class="text-muted"><i class="fa fa-location-arrow fa-fw"></i>A proximit&eacute; de ' + location.city + '</small>');
 	}
-	
+
 	scrollToBottom();
 };
-var displayMessage = function (message) {
+var displayInfo = function (message) {
 	$('#messages').append($('<li>').html(message));
 	scrollToBottom();
 };
@@ -192,8 +192,9 @@ var displayImage = function (username, base64Image) {
 };
 
 var usersStatus = [];
-var displayUsersStatus = function(data) {
-	if (typeof(data) === 'undefined') return;
+var displayUsersStatus = function (data) {
+	if (typeof(data) === 'undefined')
+		return;
 	usersStatus = data;
 	for (var i in usersStatus) {
 		var obj = usersStatus[i];
@@ -202,7 +203,7 @@ var displayUsersStatus = function(data) {
 };
 var changeUserStatus = function (index) {
 	var obj = usersStatus[index];
-	
+
 	// on supprime la classe "selected" de tous les éléments de type a possédant la classe selected
 	$('ul.dropdown-menu a.selected').removeClass('selected');
 
@@ -214,19 +215,19 @@ var changeUserStatus = function (index) {
 		username : USERNAME,
 		status : obj.id,
 		geolocation : {
-			address: geolocationHelper.currentUserAddress,
-			country: geolocationHelper.currentUserCountry,
-			city: geolocationHelper.currentUserCity
+			address : geolocationHelper.currentUserAddress,
+			country : geolocationHelper.currentUserCountry,
+			city : geolocationHelper.currentUserCity
 		}
 	});
 };
 
 /** Code exécuté lorsque le document est prêt */
 $(document).ready(function () {
-	
+
 	// initialisation de la géo-localisation
 	geolocationHelper.initialiseGeolocation();
-	
+
 	// make ajax call:
 	var request = $.ajax('/api/users-status');
 	request.done(function (data) {
@@ -235,7 +236,7 @@ $(document).ready(function () {
 	request.fail(function () {
 		alert('Error occurred!');
 	});
-	
+
 	$(":file").filestyle();
 	$('#uploadInfo').hide();
 });

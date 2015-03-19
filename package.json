@@ -1,6 +1,6 @@
 {
 	"name" : "super-chat",
-	"version" : "0.1.6",
+	"version" : "0.1.7",
 	"main" : "app.js",
 	"dependencies" : {
 		"body-parser" : "~1.10.1",
@@ -18,7 +18,9 @@
 		"socket.io" : "~1.0.0",
 		"url-regexp" : "~1.0.2",
 		"user-management" : "~1.0.0",
-		"bootstrap-datepicker" : "~1.4.0"
+		"bootstrap-datepicker" : "~1.4.0",
+		"formidable" : "~1.0.17",
+		"unit.js" : "~1.1.0"
 	},
 	"devDependencies" : {
 		"grunt" : "^0.4.5",
