@@ -35,11 +35,11 @@
 	<body>
 		<h1>Déconnexion</h1>
 		
-		<% if (typeof(error) != "undefined") { %>
+		<% if (error) { %>
 		<p class="err"><%= error %></p>
 		<% } %>
 		
-		<% if (typeof(message) != "undefined") { %>
+		<% if (message) { %>
 		<p class="msg"><%= message %></p>
 		<% } %>
 		
