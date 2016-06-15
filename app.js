@@ -2,7 +2,6 @@ var config = require('./lib/config'); // charge la config depuis le fichier ./co
 
 require('./lib/config-checker')(config); // teste la config actuelle
 
-
 var log = require('gelf-pro');
 log.setConfig(config.gelfProConfig);
 
@@ -47,12 +46,12 @@ app.use(session({
 // limite d'upload de fichier via méthode POST : 50MB
 var bodyParser = require('body-parser');
 
-var DATA_BUFFER_LENGTH = config.fileUpload.dataBufferLength;
-var BLOCK_SIZE = config.fileUpload.blockSize;
-var ONE_MB = 1024 * 1024;
-var FILE_UPLOAD_TEMP_DIR = __dirname + '/' + config.fileUpload.tempDir; // temp/
-var FILE_UPLOAD_SHARE_DIR = __dirname + '/' + config.fileUpload.shareDir; // share/
-var FILE_UPLOAD_TEMP_EXT = config.fileUpload.tempExtension; // .part
+// var DATA_BUFFER_LENGTH = config.fileUpload.dataBufferLength;
+// var BLOCK_SIZE = config.fileUpload.blockSize;
+// var ONE_MB = 1024 * 1024;
+// var FILE_UPLOAD_TEMP_DIR = __dirname + '/' + config.fileUpload.tempDir; // temp/
+// var FILE_UPLOAD_SHARE_DIR = __dirname + '/' + config.fileUpload.shareDir; // share/
+// var FILE_UPLOAD_TEMP_EXT = config.fileUpload.tempExtension; // .part
 
 // Initialise REST routes
 require('./lib/app-routes')(app);
