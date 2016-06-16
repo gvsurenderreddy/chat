@@ -22,9 +22,13 @@ var URLRegExp = require('url-regexp');
 var moment = require('moment'); // utilitaire de formatage des dates
 var fs = require('fs');
 var util = require('util');
+
+// Chat-specific libraries (kinda BL classes or services)
 var chatDbService = require('./lib/chat-db-service'); // charge le service de base de données du chat
 var usersStatusHelper = require('./lib/users-status-helper');
 var connectedUsersHelper = require('./lib/connected-users-helper'); // gestionnaire d'utilisateurs connectés
+var ft = require('./lib/file-transfer-service'); // charge le service de transfert de fichiers
+
 
 app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
 app.set('view engine', 'ejs'); // moteur de template = ejs
@@ -77,8 +81,7 @@ io.use(function ioSession(socket, next) {
 	next();
 });
 
-// variable contenant les fichiers uploadés.
-var files = {};
+// handles socket.io connections
 io.sockets.on('connection', function (socket) {
 
 	// L'utilisateur se connecte au chat, on l'annonce :
@@ -119,6 +122,10 @@ io.sockets.on('connection', function (socket) {
 				"connectedUsers" : connectedUsersHelper.getLite()
 			});
 		});
+	});
+
+	socket.on('error', function(err){
+		log.error("Error event received in socket.io...", err);
 	});
 
 	/** Manage user messages & statuses */
@@ -208,220 +215,50 @@ io.sockets.on('connection', function (socket) {
 	});
 	/** /Manage user messages & statuses */
 
+
 	/** Manage uploads */
 	socket.on('upload-start', function (data) {
 		
-		try {
+		// new code
+		ft.addFileTransfer(data, function(err, moreDataInfo) {
 			
-			log.info("upload-start");
-
-			var name = data['name'];
-
-			// vérifier que files[name] n'existe pas déjà:
-			if (!!files[name]) {
-				socket.emit('file-exists', {
-					'text' : "The File " + name + "already exists on the server."
-				});
+			if (err) {
+				log.error("Error occurred in addFileTransfer !", err);
 				return;
 			}
-
-			files[name] = {
-				fileSize : data['size'],
-				data : '',
-				downloaded : 0,
-				startDate : new Date(),
-				lastDataReceivedDate : new Date(),
-				paused : false,
-				pauseData : null,
-				cancelled : false,
-				tempName : name + FILE_UPLOAD_TEMP_EXT
-			};
 			
-			var place = 0;
+			log.info('addFileTransfer returned with moredatainfo !', moreDataInfo);
+			socket.emit('moreData', moreDataInfo);
+			
+		});
 		
-			log.info("checking filename " + name);
-			
-			// check temp directory
-			fs.stat(FILE_UPLOAD_TEMP_DIR, function(err, stats) {
-				
-				if (err) {
-					// error, the temporary directory does not exist!!!!
-					log.error("The temporary directory does not exist!", err);
-					
-				} else {
-					
-					// no error but...
-					// we still need to check if the file already exists in the shared directory
-					fs.stat(FILE_UPLOAD_TEMP_DIR + name, function(err, stats) {
-						
-						if (err) {
-							
-							// err is normal in this case because the file must not exist!
-							log.info("File " + FILE_UPLOAD_TEMP_DIR + name + " does not exist");
-
-							// it's a new file
-							var tempFileName = FILE_UPLOAD_TEMP_DIR + name + FILE_UPLOAD_TEMP_EXT;
-
-							//console.log('2. Le fichier n\'existe pas, on va crééer le fichier temporaire :' + tempFileName);
-
-							fs.open(tempFileName, "a", 0755, function (err, fd) {
-								if (err) {
-									log.error("Error occurred while opening the file", err);
-								} else {
-									files[name]['handler'] = fd; // we store the file handler so we can write to it later
-									socket.emit('moreData', {
-										'place' : place,
-										'percent' : 0,
-										'rate' : 0,
-										'downloaded' : 0
-									});
-								}
-							});
-						} else {
-							
-							// stats must be set.
-							log.info("File already exists!", stats);
-
-							socket.emit('file-exists', {
-								'text' : "The File " + name + "already exists on the server."
-							});
-						}
-
-					});					
-					
-					
-					
-				}
-			});
-
-		} catch (ex) {
-			log.error("Error occurred.", ex);
-		}
-	
 	});
 	socket.on('upload-data', function (data) {
-		var name = data['name'];
-
-		if (files[name]['cancelled'] === true) {
-			files[name] = null;
-			return;
-		}
-
-		files[name]['downloaded'] += data['data'].length;
-		files[name]['data'] += data['data'];
-
-		// The file is fully loaded
-		if (files[name]['downloaded'] == files[name]['fileSize']) {
-			
-			log.info("File fully loaded", files[name]);
-			fs.write(files[name]['handler'], files[name]['data'], null, 'Binary', function (err, written) {
-				if (err) {
-					log.error("Error while writing bytes to file [" + name + "]", err);
-				} else {
-					// 1. close the file !
-					fs.close(files[name]['handler'], function (err) {
-						if (err) {
-							log.error("Error while closing file [" + name + "]", err);
-						} else {
-							log.info("File [" + name + "] closed successfully");
-						}
-					});
-
-					// 2. déplacer le fichier dans le répertoire de partage.
-					var oldPath = FILE_UPLOAD_TEMP_DIR + name + FILE_UPLOAD_TEMP_EXT;
-					var newPath = FILE_UPLOAD_SHARE_DIR + name;
-
-					log.info("Moving file...", { oldPath: oldPath, newPath: newPath });
-
-					fs.rename(oldPath, newPath, function (err) {
-						if (err) {
-							log.error("Error while moving file...", err);
-						} else {
-							var now = new Date();
-							var span = (now - files[name]['startDate'])
-							var rate = (files[name]['downloaded'] * 1000) / span;
-
-							// on envoie un message de transfert réussi
-							var obj = {
-								'name' : name,
-								'size' : Math.round(files[name]['fileSize'] / (ONE_MB) * 100) / 100, // MB
-								'downloaded' : Math.round(files[name]['downloaded'] / (ONE_MB) * 100) / 100, // MB
-								'startDate' : files[name]['startDate'],
-								'finishDate' : now,
-								'elapsedTime' : span,
-								'rate' : (rate / (ONE_MB)).toFixed(3) // MB/s
-							};
-							
-							log.info("Upload finished", obj);
-							
-							// Emitting 'upload-done' event.
-							socket.emit('upload-done', obj);
-
-							// Send the new file list to everyone
-							fs.readdir(FILE_UPLOAD_SHARE_DIR, function (err, files) {
-								if (err) {
-									log.error("Error while reading shared directory.", err);
-								} else {
-									// actually sends the file list
-									io.sockets.emit('shared-files', {
-										'files' : files,
-										'directory' : config.fileUpload.shareDir
-									});
-								}
-							});
-						}
-					});
-				}
-			});
-		} else if (files[name]['data'].length > DATA_BUFFER_LENGTH) {
-			
-			// write incoming bytes
-			fs.write(files[name]['handler'], files[name]['data'], null, 'Binary', function (err, written) {
-				
-				if (err) {
-					log.error("Error while writing bytes to file " + name, err);
-				} else {
-					files[name]['data'] = ""; // resets the buffer.
-					var rate = (data['data'].length * 1000) / (new Date() - files[name]['lastDataReceivedDate']);
-					files[name]['lastDataReceivedDate'] = new Date();
-					var place = files[name]['downloaded'] / BLOCK_SIZE;
-					var percent = (files[name]['downloaded'] / files[name]['fileSize']) * 100;
-
-					var msg = {
-						'place' : place,
-						'percent' : percent,
-						'rate' : (rate / (ONE_MB)).toFixed(3), // MB/s
-						'downloaded' : Math.round(files[name]['downloaded'] / (ONE_MB)) // MB
-					};
-
-					if (files[name]['paused'] === true) {
-						files[name]['pauseData'] = msg;
-					} else {
-						socket.emit('moreData', msg);
-					}
-				}
-			});
-
-		} else {
-			
-			var rate = (data['data'].length * 1000) / (new Date() - files[name]['lastDataReceivedDate']);
-			files[name]['lastDataReceivedDate'] = new Date();
-			var place = files[name]['downloaded'] / BLOCK_SIZE;
-			var percent = (files[name]['downloaded'] / files[name]['fileSize']) * 100;
-
-			var msg = {
-				'place' : place,
-				'percent' : percent,
-				'rate' : (rate / (ONE_MB)).toFixed(3), // MB/s
-				'downloaded' : Math.round(files[name]['downloaded'] / (ONE_MB)) // MB
-			};
-			
-			if (files[name]['paused'] === true) {
-				files[name]['pauseData'] = msg;
-			} else {
-				socket.emit('moreData', msg);
+		var name = data.name;
+		
+		//new code: call file-transfer-service
+		ft.saveFileData(data, function(err, obj) {
+			if (err) { 
+				log.error("Error occurred in saveFileData", err);
+				return;
 			}
-		}
+			
+			if (obj.done === true) { // transfer is finished !
+				//transfer is over, 
+				socket.emit('upload-done', obj);
+				
+				ft.getTransferredFiles(function(err) {
+					
+				});
+			}
+			else { // transfer is not finished
+				
+				if (!obj.paused) {
+					socket.emit('moreData', obj);
+				}
+			}
+		});
+		
 	});
 	socket.on('upload-pause', function (data) {
 		try {
@@ -429,7 +266,8 @@ io.sockets.on('connection', function (socket) {
 			
 			// 'data' doit contenir le nom du fichier
 
-			var name = data['name'];
+			var name = data.name;
+			
 			if (files && files[name]['paused'] === false) {
 				files[name]['paused'] = true;
 			}else{
@@ -487,6 +325,21 @@ io.sockets.on('connection', function (socket) {
 	});
 	socket.on('get-shared-files', function () {
 		
+		ft.getTransferredFiles(function(err, files) {
+			if (err) {
+				log.error("Cannot read directory " + FILE_UPLOAD_SHARE_DIR, err);
+				return;
+			}
+			
+			io.sockets.emit('shared-files', {
+				'files' : files,
+				'directory' : config.fileUpload.shareDir
+			});
+		});
+		
+		
+		
+		
 		/** Asynchronous readdir(3).
 		 * Reads the contents of a directory. The callback gets two arguments (err, files)
 		 * where files is an array of the names of the files in the directory excluding '.' and '..'.  */
@@ -503,4 +356,5 @@ io.sockets.on('connection', function (socket) {
 		});
 	})
 	/** /Manage uploads */
+	
 });
