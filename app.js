@@ -1,37 +1,58 @@
-var config = require('./lib/config'); // charge la config depuis le fichier ./config.js
+// Charge la config depuis le fichier ./config.js
+var config = require('./lib/config');
 
-require('./lib/config-checker')(config); // teste la config actuelle
+// Vérifie la config actuelle
+require('./lib/config-checker')(config);
 
 var log = require('gelf-pro');
 log.setConfig(config.gelfProConfig);
 
 var express = require('express');
-var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
+
+// Charge le middleware de gestion des paramètres
+var bodyParser = require('body-parser');
 var app = express();
 var session = require('express-session');
 var cookie = require('cookie');
 var cookieParser = require('cookie-parser');
 var MongoStore = require('connect-mongo')(session);
-var mongoStore = new MongoStore({
-	url : config.mongodbUrl
-});
-var assert = require('assert'); // module de test unitaire
-var ejs = require('ejs'); // templating ejs
-var ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
+
+var mongoStore = new MongoStore({ url: config.mongodbUrl });
+
+// Module de test unitaire
+var assert = require('assert');
+
+// Templating ejs
+var ejs = require('ejs');
+
+// Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
+var ent = require('ent');
 var URLRegExp = require('url-regexp');
-var moment = require('moment'); // utilitaire de formatage des dates
+
+// utilitaire de formatage des dates
+var moment = require('moment');
 var fs = require('fs');
 var util = require('util');
 
 // Chat-specific libraries (kinda BL classes or services)
-var chatDbService = require('./lib/chat-db-service'); // charge le service de base de données du chat
+
+// Charge le service de base de données du chat
+var chatDbService = require('./lib/chat-db-service');
 var usersStatusHelper = require('./lib/users-status-helper');
-var connectedUsersHelper = require('./lib/connected-users-helper'); // gestionnaire d'utilisateurs connectés
-var ft = require('./lib/file-transfer-service'); // charge le service de transfert de fichiers
+
+// Gestionnaire d'utilisateurs connectés
+var connectedUsersHelper = require('./lib/connected-users-helper');
+
+// Service de transfert de fichiers
+var ft = require('./lib/file-transfer-service');
 
 
-app.set('views', __dirname + '/views'); // les vues se trouvent dans le répertoire "views"
-app.set('view engine', 'ejs'); // moteur de template = ejs
+// Les vues se trouvent dans le répertoire "views"
+app.set('views', __dirname + '/views');
+
+// Moteur de template = ejs
+app.set('view engine', 'ejs');
+
 app.use(cookieParser(config.cookie.secret));
 app.use(session({
 		name : config.cookie.name,
@@ -50,13 +71,6 @@ app.use(session({
 // limite d'upload de fichier via méthode POST : 50MB
 var bodyParser = require('body-parser');
 
-// var DATA_BUFFER_LENGTH = config.fileUpload.dataBufferLength;
-// var BLOCK_SIZE = config.fileUpload.blockSize;
-// var ONE_MB = 1024 * 1024;
-// var FILE_UPLOAD_TEMP_DIR = __dirname + '/' + config.fileUpload.tempDir; // temp/
-// var FILE_UPLOAD_SHARE_DIR = __dirname + '/' + config.fileUpload.shareDir; // share/
-// var FILE_UPLOAD_TEMP_EXT = config.fileUpload.tempExtension; // .part
-
 // Initialise REST routes
 require('./lib/app-routes')(app);
 
@@ -67,14 +81,14 @@ var io = require('socket.io')(server);
 /** Stocke le sessionID dans l'objet socket */
 io.use(function ioSession(socket, next) {
 
-	// create the fake req that cookieParser will expect
+	// Create the fake req that cookieParser will expect
 	var req = {
-		"headers" : {
-			"cookie" : socket.request.headers.cookie,
-		},
+		'headers' : {
+			'cookie' : socket.request.headers.cookie
+		}
 	};
 
-	// run the parser and store the sessionID
+	// Run the parser and store the sessionID
 	cookieParser(config.cookie.secret)(req, null, function () {});
 	socket.sessionID = req.signedCookies[config.cookie.name] || req.cookies[config.cookie.name];
 
@@ -86,6 +100,11 @@ io.sockets.on('connection', function (socket) {
 
 	// L'utilisateur se connecte au chat, on l'annonce :
 	mongoStore.get(socket.sessionID, function (err, session) {
+		
+		if (err) {
+			log.error("Error while connecting to mongo db.", err);
+			return;
+		}
 
 		// ajout de l'utilisateur à la liste des utilisateurs connectés
 		connectedUsersHelper.add(socket.sessionID, session.username, usersStatusHelper.getDefault());
@@ -109,7 +128,10 @@ io.sockets.on('connection', function (socket) {
 
 		// recup de la session
 		mongoStore.get(socket.sessionID, function (err, session) {
-			//console.log(session.username + ' vient de se deconnecter.\n');
+			if (err) {
+				log.error("Error while connecting to mongo db.", err);
+				return;
+			}				
 
 			// on broadcaste le message de déconnexion d'un utilisateur :
 			socket.broadcast.emit('user-disconnected', {
@@ -124,22 +146,23 @@ io.sockets.on('connection', function (socket) {
 		});
 	});
 
-	socket.on('error', function(err){
-		log.error("Error event received in socket.io...", err);
-	});
-
 	/** Manage user messages & statuses */
 	socket.on('message', function (messageData) {
 
-		//console.dir(messageData);
-
-		if (messageData == null)
+		if (!messageData) {
+			log.error("app.js : 'message' event received but messageData is empty.");
 			return;
-
+		}
+		
 		mongoStore.get(socket.sessionID, function (err, session) {
+			
+			if (err) {
+				log.error("Error while getting session from mongodb.",err);
+				return;
+			}
+			
 			// on vérifie le message : s'il contient une url, on l'affiche sous forme de lien cliquable
 			var msgSplitArray = ent.encode(messageData.msg).split(' ');
-
 			for (var i in msgSplitArray) {
 				var urlMatches = URLRegExp.match(msgSplitArray[i]);
 				if (urlMatches.length == 1)
@@ -148,7 +171,6 @@ io.sockets.on('connection', function (socket) {
 			messageData.msg = msgSplitArray.join(" ");
 
 			var profilePic = '/' + config.usersAvatars.dirPath + ((typeof(session.extras.filename) == 'undefined' || session.extras.filename == '') ? config.usersAvatars.defaultImage : session.extras.filename);
-			console.log('profilePic: ' + profilePic);
 			
 			var messageObject = {
 				username : session.username,
@@ -157,61 +179,65 @@ io.sockets.on('connection', function (socket) {
 				date : Date.now(),
 				profilePicture : profilePic
 			};
-			chatDbService.insertMessage(messageObject, function () {
-				console.log("chatDbService.insertMessage success");
+			
+			chatDbService.insertMessage(messageObject, function (err, result) {
+				
+				log.info("app.js : chatDbService.insertMessage success", { 'result' : result});
 			});
 
 			io.sockets.emit('message', messageObject);
-
-			//console.log('broadcast stopped-typing for user ' + session.username);
 			socket.broadcast.emit('stopped-typing', session.username);
 		});
 	});
 	socket.on('user-typing', function (data) {
-		//console.log("[" + data.date + "] " + data.username + " typing...");
-		if (data)
-			socket.broadcast.emit('user-typing', data);
+		if (!data){
+			log.error("app.js : user-typing event received but data is empty.");
+		}
+		socket.broadcast.emit('user-typing', data);
 	});
 	socket.on('stopped-typing', function (username) {
-		//console.log(username + " stopped typing.");
-		if (username)
-			socket.broadcast.emit('stopped-typing', username);
+		if (!username) {
+			log.error("app.js : stopped-typing event received but username is empty.");
+		}
+		socket.broadcast.emit('stopped-typing', username);
 	});
 	socket.on('user-image', function (base64Image) {
-		//console.log('message "user-image" received !');
+		log.info('message "user-image" received !');
 
 		// récupérer le nom d'utilisateur via la session de la websocket:
 		mongoStore.get(socket.sessionID, function (err, session) {
-			//console.log('base64Image.length = ' + base64Image.length);
-			assert.equal(null, err);
+			if (err) {
+				log.error("Error while connecting to mongo db", err);
+				return;
+			}
 			socket.broadcast.emit('user-image', session.username, ent.encode(base64Image));
 		});
 	});
 	socket.on('user-status', function (data) {
 		/** Un utilisateur vient de mettre à jour son statut. */
 
-		// un peu de log
-		//console.dir(data);
-
-		// verification :
-		assert.equal(typeof(data), 'object', "data mustbe an object.");
-
+		if (!data) {
+			log.error("app.js : 'user-status' message received but data is empty.");
+		}
+		
 		// récupération du nouveau statut à partir de l'id
 		var statusObj = usersStatusHelper.get(data.status);
 
 		// on quitte si le status == null
-		if (statusObj == null)
+		if (!statusObj) {
+			log.error("app.js : 'user-status' message received, but statusObj is empty.");
 			return;
+		}
 
 		// mise à jour du status de l'utilisateur via le sous-module connected-users-helper :
 		connectedUsersHelper.updateStatus(socket.sessionID, statusObj);
 
 		// on broadcaste le message de refresh de la liste des utilisateurs :
 		io.sockets.emit('refresh-connected-users', {
-			"connectedUsers" : connectedUsersHelper.getLite()
+			'connectedUsers' : connectedUsersHelper.getLite()
 		});
 
-		console.log("username: " + data.username + ", user-status: " + data.status);
+		log.info("username: " + data.username + ", user-status: " + data.status);
 	});
 	/** /Manage user messages & statuses */
 
@@ -238,12 +264,14 @@ io.sockets.on('connection', function (socket) {
 		
 		//new code: call file-transfer-service
 		ft.saveFileData(data, function(err, obj) {
+			
 			if (err) { 
 				log.error("Error occurred in saveFileData", err);
 				return;
 			}
 			
-			if (obj.done === true) { // transfer is finished !
+			// transfer is finished !
+			if (obj.done === true) {
 				//transfer is over, 
 				socket.emit('upload-done', obj);
 				
@@ -251,7 +279,8 @@ io.sockets.on('connection', function (socket) {
 					
 				});
 			}
-			else { // transfer is not finished
+			// transfer is not finished
+			else {
 				
 				if (!obj.paused) {
 					socket.emit('moreData', obj);
@@ -261,71 +290,63 @@ io.sockets.on('connection', function (socket) {
 		
 	});
 	socket.on('upload-pause', function (data) {
-		try {
-			log.info("upload-pause");
-			
-			// 'data' doit contenir le nom du fichier
-
-			var name = data.name;
-			
-			if (files && files[name]['paused'] === false) {
-				files[name]['paused'] = true;
-			}else{
-				throw new Error("files is undefined!");
-			}
-		}catch(ex){
-			log.error("upload-pause caused an error", ex);
+		
+		log.info("upload-pause");
+		
+		if (!data || !data.name) {
+			log.error("Either data or data.name is empty.");
+			return;
 		}
+		
+		var name = data.name;		
+		
+		ft.pauseFileTransfer(data, function(err) {
+			if (err) {
+				log.error("Error while pausing file transfer.", err);
+				return;
+			}
+			log.info("pauseFileTransfer success!");
+		});
+		
 	});
 	socket.on('upload-resume', function (data) {
-		try {
-			var name = data['name'];
-			if (files[name]['paused'] === true) {
-
-				files[name]['paused'] = false;
-
-				var msg = files[name]['pauseData'];
-				socket.emit('moreData', msg);
+		
+		ft.resumeFileTransfer(data, function(err, moreDataObj) {
+			if (err) {
+				log.error("Error while resuming file transfer", err);
+				return;
 			}
-		} catch(ex) {
-			log.error("upload-resume caused an error", ex);
-		}
+			log.info("File transfer resumed");
+			socket.emit('moreData', moreDataObj);
+		});
+		
 	});
 	socket.on('upload-cancel', function (data) {
 		
 		log.info("socket message received", { message: "upload-cancel", data: data });
 		
-		var name = data['name'];
-		files[name]['cancelled'] = true;
-
-		// On supprime le fichier téléchargé
-		var tempFilename = FILE_UPLOAD_TEMP_DIR + name + FILE_UPLOAD_TEMP_EXT;
-		fs.unlink(tempFilename, function (err) {
-			// always check err
+		if (!data || !data.name) {
+			log.error("Either data or data.name is empty.");
+			return;
+		}
+		
+		var name = data.name;
+		
+		ft.cancelFileTransfer(data, function(err) {
+			
 			if (err) {
-				log.error("Error while trying to delete the temporary downloaded file.", err);
-			} else {
-				
-				// no error, let's close the file now.
-				log.info("successfully deleted the temporary downloaded file", { "file" : tempFilename});
-				try {
-					fs.close(files[name]['handler'], function (err) {
-						if (err) {
-							log.error("Error while closing the file", err);
-						}else{
-							log.info("File closed successfully!", {"file" : tempFilename});
-						}
-					});
-				} catch (ex) {
-					log.error("Error while closing the file", ex);
-				}
+				log.error("Error occurred while cancelling the file transfer.", err);
+				return;
 			}
+			
+			log.info("cancelFileTransfer : success!");
 		});
 		
 	});
 	socket.on('get-shared-files', function () {
 		
 		ft.getTransferredFiles(function(err, files) {
+			
 			if (err) {
 				log.error("Cannot read directory " + FILE_UPLOAD_SHARE_DIR, err);
 				return;
@@ -336,24 +357,7 @@ io.sockets.on('connection', function (socket) {
 				'directory' : config.fileUpload.shareDir
 			});
 		});
-		
-		
-		
-		
-		/** Asynchronous readdir(3).
-		 * Reads the contents of a directory. The callback gets two arguments (err, files)
-		 * where files is an array of the names of the files in the directory excluding '.' and '..'.  */
-		// on envoie la nouvelle liste de fichiers (à tout le monde)
-		fs.readdir(FILE_UPLOAD_SHARE_DIR, function (err, files) {
-			if (err) {
-				log.error("Cannot read directory " + FILE_UPLOAD_SHARE_DIR, err);
-			} else {
-				io.sockets.emit('shared-files', {
-					'files' : files,
-					'directory' : config.fileUpload.shareDir
-				});
-			}
-		});
+
 	})
 	/** /Manage uploads */
 	
