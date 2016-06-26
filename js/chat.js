@@ -168,9 +168,7 @@ var addMessage = function (username, message, date, location, profilePicture) {
 	var html = (username == USERNAME) ? html_leftAlign : html_rightAlign;
 	//var avatar = (username == USERNAME) ? "http://placehold.it/50/55C1E7/fff" : "http://placehold.it/50/FA6F57/fff";
 	html = String.format(html, username, profilePicture, date, message);
-	
-	console.dir(html);
-	
+		
 	$('#messages').append(html);
 	if (location.city != null) {
 		$('strong.primary-font:last').append('<small class="text-muted"><i class="fa fa-location-arrow fa-fw"></i>A proximit&eacute; de ' + location.city + '</small>');

@@ -1,5 +1,5 @@
 {
-	"author" : "Quentin V <kwentinn@gmail.com>",
+	"author" : "Quentin Villevieille <kwentinn@gmail.com>",
 	"name" : "super-chat",
 	"dependencies" : {
 		"body-parser" : "*",
@@ -16,6 +16,7 @@
 		"moment" : "*",
 		"mongodb" : "*",
 		"socket.io" : "*",
+		"underscore": "*",
 		"url-regexp" : "*",
 		"user-management" : "*",
 		"bootstrap-datepicker" : "*",
@@ -36,5 +37,8 @@
 		"type" : "git",
 		"url" : "https://github.com/kwentinn/chat.git"
 	},
-	"version" : "0.1.7"
+	"scripts": {
+		"start": "node app.js"
+	},
+	"version" : "0.2.0"
 }
