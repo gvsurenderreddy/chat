@@ -8,10 +8,11 @@ A basic chat with Node.js, socket.io, the native mongodb module and a simple use
 - User status update
 - Geolocation in messages (can be turned off)
 - Bootstrap-enhanced UI
+- Binary file transfer (with a pause/resume feature)
 
 ## Todo
-- Binary file transfer
 - Image transfer
 - Multiple chat rooms
 - Private conversations (between 2 users)
 - Avatars for users
+- Webcam chat over WebRTC
